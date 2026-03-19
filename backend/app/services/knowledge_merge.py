@@ -72,7 +72,7 @@ async def _call_ai(prompt: str) -> str:
     if gemini_key:
         import google.generativeai as genai
         genai.configure(api_key=gemini_key)
-        model = genai.GenerativeModel("gemini-2.5-flash-preview-05-20")
+        model = genai.GenerativeModel("gemini-2.5-flash")
         response = model.generate_content(
             prompt,
             generation_config=genai.types.GenerationConfig(temperature=0.2),

@@ -12,6 +12,10 @@ class MergeRequest(BaseModel):
     summary_id: str = Field(..., description="병합할 요약 ID")
 
 
+class BatchMergeRequest(BaseModel):
+    summary_ids: list[str] = Field(..., description="병합할 요약 ID 목록")
+
+
 class MergeReviewAction(BaseModel):
     status: str = Field(..., description="승인(approved) 또는 거부(rejected)")
 

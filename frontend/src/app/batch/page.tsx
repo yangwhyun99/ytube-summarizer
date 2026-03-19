@@ -43,30 +43,71 @@ export default function BatchPage() {
   const [detailLevel, setDetailLevel] = useState("detailed");
   const [language, setLanguage] = useState("ko");
 
-  const handleLoadPlaylist = async () => {
+  const isPlaylistUrl = (url: string) => /[?&]list=/.test(url);
+
+  const extractVideoId = (url: string): string | null => {
+    const match = url.match(/(?:v=|\/v\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    return match ? match[1] : null;
+  };
+
+  const handleLoadUrl = async () => {
     if (!playlistUrl.trim()) return;
     setLoadingList(true);
     setError(null);
     setVideos([]);
     setResults(null);
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/playlist/videos`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: playlistUrl }),
-      });
-      if (!res.ok) {
+
+    const input = playlistUrl.trim();
+
+    if (isPlaylistUrl(input)) {
+      // 재생목록 URL → 기존 API 호출
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/playlist/videos`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: input }),
+        });
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.detail || "재생목록 로딩 실패");
+        }
         const data = await res.json();
-        throw new Error(data.detail || "재생목록 로딩 실패");
+        setVideos(data.videos);
+        setSelected(new Set(data.videos.map((v: PlaylistVideo) => v.url)));
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "오류 발생");
       }
-      const data = await res.json();
-      setVideos(data.videos);
-      setSelected(new Set(data.videos.map((v: PlaylistVideo) => v.url)));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "오류 발생");
-    } finally {
-      setLoadingList(false);
+    } else {
+      // 개별 영상 URL(들) → 줄바꿈/쉼표로 분리하여 직접 목록 생성
+      const urls = input
+        .split(/[\n,]+/)
+        .map((u) => u.trim())
+        .filter((u) => u.length > 0);
+
+      const parsed: PlaylistVideo[] = [];
+      for (const url of urls) {
+        const videoId = extractVideoId(url);
+        if (videoId) {
+          parsed.push({
+            video_id: videoId,
+            title: url,
+            url: url.includes("youtube.com") || url.includes("youtu.be")
+              ? url
+              : `https://www.youtube.com/watch?v=${videoId}`,
+            duration: null,
+          });
+        }
+      }
+
+      if (parsed.length === 0) {
+        setError("유효한 YouTube URL을 입력해주세요.");
+      } else {
+        setVideos(parsed);
+        setSelected(new Set(parsed.map((v) => v.url)));
+      }
     }
+
+    setLoadingList(false);
   };
 
   const toggleVideo = (url: string) => {
@@ -144,16 +185,16 @@ export default function BatchPage() {
         {/* 재생목록 URL 입력 */}
         <div className="mb-6 space-y-4">
           <div className="flex gap-3">
-            <input
-              type="text"
+            <textarea
               value={playlistUrl}
               onChange={(e) => setPlaylistUrl(e.target.value)}
-              placeholder="YouTube 재생목록 URL을 붙여넣으세요"
-              className="flex-1 px-5 py-3.5 bg-card border border-border rounded-xl text-foreground placeholder-muted transition-colors duration-300"
+              placeholder={"YouTube 재생목록 또는 영상 URL을 붙여넣으세요\n여러 URL은 줄바꿈으로 구분"}
+              rows={2}
+              className="flex-1 px-5 py-3.5 bg-card border border-border rounded-xl text-foreground placeholder-muted transition-colors duration-300 resize-none"
               disabled={loadingList || processing}
             />
             <button
-              onClick={handleLoadPlaylist}
+              onClick={handleLoadUrl}
               disabled={loadingList || !playlistUrl.trim()}
               className="px-6 py-3.5 bg-accent text-white rounded-xl font-medium hover:bg-accent-hover disabled:opacity-40 flex items-center gap-2 transition-all duration-300"
             >
@@ -359,9 +400,10 @@ export default function BatchPage() {
           <div className="text-center text-muted py-20">
             <ListVideo className="w-16 h-16 mx-auto opacity-20" />
             <p className="mt-4 text-lg text-muted-light">
-              YouTube 재생목록 URL을 입력하면
+              재생목록 URL 또는 개별 영상 URL을 입력하면
             </p>
             <p className="text-lg text-muted-light">여러 영상을 한 번에 요약합니다</p>
+            <p className="mt-2 text-sm text-muted">여러 영상 URL은 쉼표 또는 줄바꿈으로 구분</p>
           </div>
         )}
       </main>

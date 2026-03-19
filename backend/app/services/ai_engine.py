@@ -18,11 +18,16 @@ class SummaryLanguage(str, Enum):
 
 
 @dataclass
+class TimestampRef:
+    time: float
+    label: str = ""
+
+
+@dataclass
 class SummarySection:
     title: str
-    content: str
-    timestamp_start: float | None = None  # 초
-    timestamp_end: float | None = None
+    content: str  # Markdown 포맷
+    timestamps: list[TimestampRef] = field(default_factory=list)
 
 
 @dataclass
@@ -44,36 +49,80 @@ def _build_prompt(
     """요약 생성을 위한 프롬프트 구성"""
     lang_name = "한국어" if language == SummaryLanguage.KOREAN else "English"
     detail_instruction = (
-        "핵심 내용만 간결하게 1분 안에 읽을 수 있는 분량으로 요약하세요."
+        "핵심만 간결하게 정리하세요. 각 섹션은 5줄 이내로 압축하세요."
         if detail_level == DetailLevel.BRIEF
-        else "강의 노트 수준으로 상세하게 요약하세요. 중요한 개념, 예시, 코드가 있으면 모두 포함하세요."
+        else "상세하게 정리하세요. 중요한 개념, 예시, 코드, 비교 내용을 모두 포함하세요."
     )
 
-    return f"""당신은 YouTube 영상 요약 전문가입니다.
+    return f"""당신은 전문 기술 문서 작성자입니다. YouTube 영상의 트랜스크립트를 분석하여 체계적인 지식 문서로 변환합니다.
 
-## 작업
-아래 트랜스크립트와 {num_images}장의 키프레임 이미지를 분석하여 영상을 종합적으로 요약하세요.
+## 핵심 규칙
 
-## 요약 지침
+### 1. 주제/개념 단위로 구성
+- 시간 순서가 아닌 **주제/개념 단위**로 섹션을 구성하세요
+- 영상 전체에 흩어진 관련 내용을 하나의 섹션으로 통합하세요
+- 각 섹션에 관련 영상 시점(초 단위)을 timestamps 배열로 첨부하세요
+
+### 2. 전문적 문체
+- 구어체 금지 ("~입니다", "~것입니다", "~하게 됩니다" 등 사용 금지)
+- **명사형 종결** 또는 **개조식** 사용 ("~함", "~방식", "~구조")
+- **볼드 라벨** 사용: `**역할:**`, `**장점:**`, `**예시:**` 등
+
+### 3. Markdown 구조화
+- 불릿 포인트(`-`)로 핵심 사항 나열
+- 비교가 있으면 Markdown 표(`| 항목 | A | B |`) 사용
+- 코드/명령어는 코드 블록(```)으로 감싸기
+- 프로세스나 구조를 설명할 때 Mermaid 다이어그램 포함:
+
+````
+```mermaid
+flowchart LR
+    A[입력] --> B[처리] --> C[출력]
+```
+````
+
+### 4. 상세도
 - {detail_instruction}
+
+### 5. 언어
 - 응답 언어: {lang_name}
-- 이미지에 슬라이드, 코드, 차트, 다이어그램이 보이면 해당 내용을 요약에 반영하세요.
-- 섹션별로 나누어 정리하세요.
-- 각 섹션에 해당하는 영상 시간대를 [MM:SS] 형식으로 표시하세요.
 
 ## 응답 형식 (JSON)
+
 ```json
-{{
-  "title": "영상 제목 또는 핵심 주제",
+{{{{
+  "title": "핵심 주제를 나타내는 제목",
   "sections": [
-    {{
-      "title": "섹션 제목",
-      "content": "섹션 내용",
-      "timestamp_start": 0,
-      "timestamp_end": 120
-    }}
+    {{{{
+      "title": "개념/주제 이름",
+      "content": "Markdown 포맷의 본문 (불릿, 표, Mermaid 포함 가능)",
+      "timestamps": [
+        {{{{"time": 45, "label": "개념 설명"}}}},
+        {{{{"time": 320, "label": "실전 예시"}}}}
+      ]
+    }}}}
   ]
-}}
+}}}}
+```
+
+## 좋은 예시
+
+```json
+{{{{
+  "title": "바이브 코딩 완벽 가이드",
+  "sections": [
+    {{{{
+      "title": "바이브 코딩의 정의와 핵심 철학",
+      "content": "**정의:** LLM이 코드 생성을 전담하고, 개발자는 자연어로 의도를 전달하는 개발 방식\\n\\n**핵심 철학:**\\n- 프로그래밍 구문이 아닌 '무엇을 만들고 싶은지'에 집중\\n- AI와 대화하듯 소통하며 기능 완성\\n- 코드 작성보다 **설계와 의도 전달**이 핵심 역량\\n\\n**용어 유래:** 테슬라 AI 디렉터 안드레 카파시가 대중화",
+      "timestamps": [{{{{"time": 46, "label": "정의 설명"}}}}, {{{{"time": 180, "label": "철학 상세"}}}}]
+    }}}},
+    {{{{
+      "title": "전통적 코딩 vs 바이브 코딩",
+      "content": "| 항목 | 전통적 코딩 | 바이브 코딩 |\\n|------|-----------|-----------|\\n| **주요 역할** | 코드 직접 작성 | AI에게 설계/의도 전달 |\\n| **생산 도구** | IDE, 라이브러리, Stack Overflow | AI 에디터(Cursor, Claude Code) |\\n| **디버깅** | 에러 로그 분석 후 직접 수정 | AI에게 에러 전달, 함께 수정 |\\n| **필요 역량** | 프로그래밍 언어 숙련도 | 그 것에 더해, 프롬프트 및 디자인 능력 |",
+      "timestamps": [{{{{"time": 200, "label": "비교 시작"}}}}]
+    }}}}
+  ]
+}}}}
 ```
 
 ## 트랜스크립트
@@ -85,6 +134,31 @@ def _load_image_as_base64(image_path: str) -> str:
     """이미지 파일을 base64로 인코딩"""
     with open(image_path, "rb") as f:
         return base64.b64encode(f.read()).decode("utf-8")
+
+
+def _parse_sections(data: dict) -> list[SummarySection]:
+    """AI 응답 JSON에서 섹션 리스트 파싱 (신/구 포맷 모두 지원)"""
+    sections = []
+    for s in data.get("sections", []):
+        # 새 포맷: timestamps 배열
+        timestamps_raw = s.get("timestamps", [])
+        timestamps = [
+            TimestampRef(time=t["time"], label=t.get("label", ""))
+            for t in timestamps_raw
+            if isinstance(t, dict) and "time" in t
+        ]
+        # 구 포맷 fallback
+        if not timestamps and s.get("timestamp_start") is not None:
+            timestamps = [TimestampRef(time=s["timestamp_start"], label="시작")]
+            if s.get("timestamp_end") is not None:
+                timestamps.append(TimestampRef(time=s["timestamp_end"], label="종료"))
+
+        sections.append(SummarySection(
+            title=s.get("title", ""),
+            content=s.get("content", ""),
+            timestamps=timestamps,
+        ))
+    return sections
 
 
 class SummaryEngine(ABC):
@@ -155,15 +229,7 @@ class GeminiEngine(SummaryEngine):
     ) -> SummaryResult:
         import json
         data = json.loads(text)
-        sections = [
-            SummarySection(
-                title=s["title"],
-                content=s["content"],
-                timestamp_start=s.get("timestamp_start"),
-                timestamp_end=s.get("timestamp_end"),
-            )
-            for s in data.get("sections", [])
-        ]
+        sections = _parse_sections(data)
         full_text = "\n\n".join(
             f"## {s.title}\n{s.content}" for s in sections
         )
@@ -239,15 +305,7 @@ class ClaudeEngine(SummaryEngine):
         json_str = json_match.group(1) if json_match else text
 
         data = json.loads(json_str)
-        sections = [
-            SummarySection(
-                title=s["title"],
-                content=s["content"],
-                timestamp_start=s.get("timestamp_start"),
-                timestamp_end=s.get("timestamp_end"),
-            )
-            for s in data.get("sections", [])
-        ]
+        sections = _parse_sections(data)
         full_text = "\n\n".join(
             f"## {s.title}\n{s.content}" for s in sections
         )

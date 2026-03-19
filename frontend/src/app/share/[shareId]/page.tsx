@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Youtube, Loader2 } from "lucide-react";
 import Link from "next/link";
+import SummaryContent from "../../components/SummaryContent";
 
 interface Section {
   title: string;
@@ -118,31 +119,7 @@ export default function SharedSummaryPage() {
               )}
             </div>
 
-            <div className="space-y-3">
-              {summary.sections.map((section, i) => (
-                <div
-                  key={i}
-                  className="p-5 bg-card border border-border rounded-xl card-hover"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <h3 className="text-lg font-semibold text-foreground">
-                      {section.title}
-                    </h3>
-                    {section.timestamp_start !== null && (
-                      <span className="text-sm text-accent font-mono whitespace-nowrap">
-                        [{formatTime(section.timestamp_start)}
-                        {section.timestamp_end !== null &&
-                          ` - ${formatTime(section.timestamp_end)}`}
-                        ]
-                      </span>
-                    )}
-                  </div>
-                  <p className="mt-3 text-muted-light leading-relaxed whitespace-pre-wrap">
-                    {section.content}
-                  </p>
-                </div>
-              ))}
-            </div>
+            <SummaryContent sections={summary.sections} />
 
             <div className="pt-6 border-t border-border text-center">
               <Link

@@ -10,9 +10,16 @@ class SummarizeRequest(BaseModel):
     language: str = Field(default="ko", description="요약 언어 (ko 또는 en)")
 
 
+class TimestampRefResponse(BaseModel):
+    time: float
+    label: str = ""
+
+
 class SectionResponse(BaseModel):
     title: str
     content: str
+    timestamps: list[TimestampRefResponse] = []
+    # 하위호환용 (기존 DB 레코드)
     timestamp_start: float | None = None
     timestamp_end: float | None = None
 

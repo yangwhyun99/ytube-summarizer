@@ -109,8 +109,10 @@ async def summarize(
             {
                 "title": s.title,
                 "content": s.content,
-                "timestamp_start": s.timestamp_start,
-                "timestamp_end": s.timestamp_end,
+                "timestamps": [
+                    {"time": t.time, "label": t.label}
+                    for t in s.timestamps
+                ],
             }
             for s in summary.sections
         ]

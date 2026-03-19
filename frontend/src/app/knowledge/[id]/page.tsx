@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
+import SummaryContent from "../../components/SummaryContent";
 
 interface KnowledgeSection {
   id: string;
@@ -65,8 +66,9 @@ export default function KnowledgeDetailPage() {
 
   const [showMerge, setShowMerge] = useState(false);
   const [summaries, setSummaries] = useState<SummaryItem[]>([]);
-  const [selectedSummary, setSelectedSummary] = useState("");
+  const [selectedSummaries, setSelectedSummaries] = useState<Set<string>>(new Set());
   const [merging, setMerging] = useState(false);
+  const [mergeResults, setMergeResults] = useState<{ summary_id: string; status: string; title?: string; error?: string; changes?: number }[] | null>(null);
 
   const [mergeHistories, setMergeHistories] = useState<MergeHistoryItem[]>([]);
   const [showHistory, setShowHistory] = useState(false);
@@ -106,22 +108,44 @@ export default function KnowledgeDetailPage() {
     fetchMergeHistories();
   }, [kbId]);
 
+  const toggleSummary = (id: string) => {
+    setSelectedSummaries((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    if (selectedSummaries.size === availableSummaries.length) {
+      setSelectedSummaries(new Set());
+    } else {
+      setSelectedSummaries(new Set(availableSummaries.map((s) => s.id)));
+    }
+  };
+
   const handleStartMerge = async () => {
-    if (!selectedSummary) return;
+    if (selectedSummaries.size === 0) return;
     setMerging(true);
     setError(null);
+    setMergeResults(null);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/knowledge/${kbId}/merge`, {
+      const res = await fetch(`${BACKEND_URL}/api/knowledge/${kbId}/batch-merge`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ summary_id: selectedSummary }),
+        body: JSON.stringify({ summary_ids: [...selectedSummaries] }),
       });
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.detail || "병합 실패");
       }
-      const mergeResult = await res.json();
-      router.push(`/knowledge/${kbId}/merge/${mergeResult.id}`);
+      const data = await res.json();
+      setMergeResults(data.results);
+      // 성공 시 종합본 새로고침
+      fetchKb();
+      fetchMergeHistories();
+      setSelectedSummaries(new Set());
     } catch (err) {
       setError(err instanceof Error ? err.message : "병합 중 오류 발생");
     } finally {
@@ -194,7 +218,7 @@ export default function KnowledgeDetailPage() {
 
         {/* 요약 병합 패널 */}
         {showMerge && kb && (
-          <div className="mb-6 p-5 bg-blue-500/10 border border-blue-500/30 rounded-xl space-y-3">
+          <div className="mb-6 p-5 bg-blue-500/10 border border-blue-500/30 rounded-xl space-y-4">
             <h3 className="font-semibold text-foreground flex items-center gap-2">
               <GitMerge className="w-5 h-5 text-blue-400" />
               영상 요약을 종합본에 병합
@@ -205,42 +229,82 @@ export default function KnowledgeDetailPage() {
               </p>
             ) : (
               <>
-                <select
-                  value={selectedSummary}
-                  onChange={(e) => setSelectedSummary(e.target.value)}
-                  className="w-full px-4 py-3 bg-surface border border-border rounded-xl text-foreground"
-                >
-                  <option value="">요약을 선택하세요</option>
+                <div className="flex items-center justify-between">
+                  <button onClick={toggleAll} className="text-xs text-muted hover:text-foreground transition-colors">
+                    {selectedSummaries.size === availableSummaries.length ? "전체 해제" : "전체 선택"}
+                  </button>
+                  <span className="text-xs text-muted font-mono">{selectedSummaries.size}/{availableSummaries.length} 선택</span>
+                </div>
+                <div className="space-y-2 max-h-64 overflow-y-auto">
                   {availableSummaries.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.title} ({s.engine_used},{" "}
-                      {new Date(s.created_at).toLocaleDateString("ko-KR")})
-                    </option>
+                    <label
+                      key={s.id}
+                      className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-200 ${
+                        selectedSummaries.has(s.id)
+                          ? "bg-blue-500/20 border border-blue-500/40"
+                          : "bg-surface border border-border hover:border-border-hover"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedSummaries.has(s.id)}
+                        onChange={() => toggleSummary(s.id)}
+                        className="w-4 h-4 rounded accent-blue-500"
+                      />
+                      <img
+                        src={`https://img.youtube.com/vi/${s.video_id}/default.jpg`}
+                        alt=""
+                        className="w-16 h-10 object-cover rounded-lg hidden sm:block opacity-80"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{s.title}</p>
+                        <p className="text-xs text-muted font-mono">
+                          {s.engine_used} · {new Date(s.created_at).toLocaleDateString("ko-KR")}
+                        </p>
+                      </div>
+                    </label>
                   ))}
-                </select>
-                <div className="flex gap-2">
+                </div>
+                <div className="flex gap-2 pt-1">
                   <button
                     onClick={handleStartMerge}
-                    disabled={merging || !selectedSummary}
+                    disabled={merging || selectedSummaries.size === 0}
                     className="px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 disabled:opacity-40 flex items-center gap-2 transition-all duration-300"
                   >
                     {merging ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        분석 중...
+                        {selectedSummaries.size}개 병합 중...
                       </>
                     ) : (
-                      "병합 시작"
+                      <>{selectedSummaries.size}개 병합 시작</>
                     )}
                   </button>
                   <button
-                    onClick={() => setShowMerge(false)}
+                    onClick={() => { setShowMerge(false); setMergeResults(null); }}
                     className="px-5 py-2.5 border border-border text-muted-light rounded-xl text-sm hover:bg-card transition-all duration-300"
                   >
-                    취소
+                    닫기
                   </button>
                 </div>
               </>
+            )}
+
+            {/* 병합 결과 */}
+            {mergeResults && (
+              <div className="space-y-2 pt-2 border-t border-border/50">
+                <h4 className="text-sm font-semibold text-foreground">
+                  병합 완료 — <span className="text-green-400">{mergeResults.filter(r => r.status === "success").length}</span>/{mergeResults.length}개 성공
+                </h4>
+                {mergeResults.map((r, i) => (
+                  <div key={i} className={`text-sm flex items-center gap-2 ${r.status === "success" ? "text-green-400" : r.status === "skipped" ? "text-yellow-400" : "text-red-400"}`}>
+                    {r.status === "success" ? <Check className="w-3.5 h-3.5" /> : r.status === "skipped" ? <Clock className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5" />}
+                    <span className="truncate">{r.title || r.summary_id}</span>
+                    {r.changes && <span className="text-muted text-xs">({r.changes}개 변경)</span>}
+                    {r.error && <span className="text-xs">— {r.error}</span>}
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         )}
@@ -319,27 +383,12 @@ export default function KnowledgeDetailPage() {
                 </p>
               </div>
             ) : (
-              <div className="space-y-3">
-                {kb.sections.map((section) => (
-                  <div
-                    key={section.id}
-                    className="p-5 bg-card border border-border rounded-xl card-hover"
-                  >
-                    <h3 className="text-lg font-semibold text-foreground">
-                      {section.section_title}
-                    </h3>
-                    <p className="mt-3 text-muted-light leading-relaxed whitespace-pre-wrap">
-                      {section.content}
-                    </p>
-                    <div className="mt-3 flex gap-2 text-xs text-muted font-mono">
-                      <span>출처: {section.source_video_ids.length}개 영상</span>
-                      <span>
-                        수정: {new Date(section.updated_at).toLocaleDateString("ko-KR")}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <SummaryContent
+                sections={kb.sections.map((s) => ({
+                  title: s.section_title,
+                  content: s.content,
+                }))}
+              />
             )}
           </div>
         )}

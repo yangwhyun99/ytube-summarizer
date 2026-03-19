@@ -13,6 +13,7 @@ from app.models.summary import Summary
 from app.models.knowledge_schemas import (
     CreateKnowledgeBaseRequest,
     MergeRequest,
+    BatchMergeRequest,
     MergeReviewAction,
 )
 from app.services.knowledge_merge import generate_merge_diffs
@@ -198,6 +199,129 @@ async def start_merge(
         "changes_diff": changes_diff,
         "status": "pending",
         "created_at": merge_history.created_at.isoformat(),
+    }
+
+
+@router.post("/{kb_id}/batch-merge")
+async def batch_merge(
+    kb_id: str,
+    request: BatchMergeRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """여러 요약을 순차적으로 종합본에 병합 (각각 diff 생성 후 자동 승인)"""
+    # 종합본 조회
+    kb_result = await db.execute(
+        select(KnowledgeBase)
+        .options(selectinload(KnowledgeBase.sections))
+        .where(KnowledgeBase.id == kb_id)
+    )
+    kb = kb_result.scalar_one_or_none()
+    if not kb:
+        raise HTTPException(status_code=404, detail="종합본을 찾을 수 없습니다.")
+
+    results = []
+
+    for summary_id in request.summary_ids:
+        # 요약 조회
+        summary_result = await db.execute(
+            select(Summary).where(Summary.id == summary_id)
+        )
+        summary = summary_result.scalar_one_or_none()
+        if not summary:
+            results.append({"summary_id": summary_id, "status": "error", "error": "요약을 찾을 수 없습니다."})
+            continue
+
+        if summary.id in kb.source_summary_ids:
+            results.append({"summary_id": summary_id, "status": "skipped", "title": summary.title, "error": "이미 병합됨"})
+            continue
+
+        try:
+            # 현재 섹션 정보 (매 루프마다 최신화)
+            existing_sections = [
+                {"section_title": s.section_title, "content": s.content}
+                for s in kb.sections
+            ]
+
+            # AI diff 생성
+            diffs = await generate_merge_diffs(
+                existing_sections=existing_sections,
+                new_summary_sections=summary.sections,
+                video_title=summary.title,
+            )
+
+            changes_diff = [
+                {"section_title": d.section_title, "action": d.action, "before": d.before, "after": d.after}
+                for d in diffs
+            ]
+
+            # MergeHistory 저장 (approved로 바로 저장)
+            merge_history = MergeHistory(
+                knowledge_base_id=kb.id,
+                video_summary_id=summary.id,
+                video_title=summary.title,
+                changes_diff=changes_diff,
+                status="approved",
+            )
+            db.add(merge_history)
+
+            # 변경 사항 즉시 적용
+            section_map = {s.section_title: s for s in kb.sections}
+            max_order = max((s.section_order for s in kb.sections), default=0)
+
+            for diff in diffs:
+                if diff.action == "update" and diff.section_title in section_map:
+                    section = section_map[diff.section_title]
+                    section.content = diff.after
+                    section.updated_at = datetime.now(timezone.utc)
+                    if summary.video_id and summary.video_id not in section.source_video_ids:
+                        section.source_video_ids = section.source_video_ids + [summary.video_id]
+                elif diff.action == "new_section":
+                    max_order += 1
+                    new_section = KnowledgeSection(
+                        knowledge_base_id=kb.id,
+                        section_title=diff.section_title,
+                        section_order=max_order,
+                        content=diff.after,
+                        source_video_ids=[summary.video_id] if summary.video_id else [],
+                    )
+                    db.add(new_section)
+                    kb.sections.append(new_section)
+                    section_map[diff.section_title] = new_section
+
+            # source_summary_ids 업데이트
+            kb.source_summary_ids = kb.source_summary_ids + [summary.id]
+            kb.updated_at = datetime.now(timezone.utc)
+
+            await db.commit()
+            # 섹션 최신화를 위해 다시 로드
+            await db.refresh(kb)
+            await db.execute(
+                select(KnowledgeBase)
+                .options(selectinload(KnowledgeBase.sections))
+                .where(KnowledgeBase.id == kb_id)
+            )
+            kb_reload = (await db.execute(
+                select(KnowledgeBase)
+                .options(selectinload(KnowledgeBase.sections))
+                .where(KnowledgeBase.id == kb_id)
+            )).scalar_one()
+            kb = kb_reload
+
+            results.append({
+                "summary_id": summary_id,
+                "status": "success",
+                "title": summary.title,
+                "changes": len(changes_diff),
+            })
+        except Exception as e:
+            results.append({"summary_id": summary_id, "status": "error", "title": summary.title, "error": str(e)})
+
+    success_count = sum(1 for r in results if r["status"] == "success")
+    return {
+        "results": results,
+        "total": len(results),
+        "success": success_count,
+        "failed": len(results) - success_count,
     }
 
 
