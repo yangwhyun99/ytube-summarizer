@@ -80,18 +80,18 @@ export default function SummaryDetailPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="border-b border-gray-200 bg-white">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-3">
-          <Youtube className="w-8 h-8 text-red-600" />
-          <h1 className="text-xl font-bold text-gray-900">YTSummarizer</h1>
+      <header className="glass-header border-b border-border sticky top-0 z-50">
+        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center gap-3">
+          <Youtube className="w-7 h-7 text-accent" />
+          <h1 className="text-lg font-bold text-foreground tracking-tight">YTSummarizer</h1>
         </div>
       </header>
 
-      <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-8">
+      <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-8">
         <div className="flex items-center justify-between mb-6">
           <Link
             href="/history"
-            className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground transition-colors duration-300"
           >
             <ArrowLeft className="w-4 h-4" />
             목록으로 돌아가기
@@ -101,14 +101,14 @@ export default function SummaryDetailPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => handleExport("pdf")}
-                className="flex items-center gap-1 px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-50 text-gray-700 transition-colors"
+                className="flex items-center gap-1.5 px-3.5 py-2 text-sm border border-border rounded-xl hover:bg-card text-muted-light transition-all duration-300"
               >
                 <FileDown className="w-4 h-4" />
                 PDF
               </button>
               <button
                 onClick={() => handleExport("docx")}
-                className="flex items-center gap-1 px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-50 text-gray-700 transition-colors"
+                className="flex items-center gap-1.5 px-3.5 py-2 text-sm border border-border rounded-xl hover:bg-card text-muted-light transition-all duration-300"
               >
                 <FileText className="w-4 h-4" />
                 DOCX
@@ -118,47 +118,51 @@ export default function SummaryDetailPage() {
         </div>
 
         {loading && (
-          <div className="text-center py-16">
-            <Loader2 className="w-8 h-8 text-red-500 animate-spin mx-auto" />
+          <div className="text-center py-20">
+            <Loader2 className="w-8 h-8 text-accent animate-spin mx-auto" />
           </div>
         )}
 
         {error && (
-          <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700">{error}</p>
+          <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
+            <p className="text-red-400">{error}</p>
           </div>
         )}
 
         {summary && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-2xl font-bold text-foreground tracking-tight">
                 {summary.title}
               </h2>
-              <div className="mt-2 flex flex-wrap gap-3 text-sm text-gray-500">
-                <span>엔진: {summary.engine_used}</span>
+              <div className="mt-3 flex flex-wrap gap-3 text-sm text-muted">
+                <span className="px-2.5 py-1 bg-card border border-border rounded-lg font-mono text-xs">
+                  {summary.engine_used}
+                </span>
                 {summary.video_duration && (
-                  <span>
-                    영상 길이: {formatTime(summary.video_duration)}
+                  <span className="px-2.5 py-1 bg-card border border-border rounded-lg font-mono text-xs">
+                    {formatTime(summary.video_duration)}
                   </span>
                 )}
                 {summary.keyframe_count > 0 && (
-                  <span>키프레임: {summary.keyframe_count}장</span>
+                  <span className="px-2.5 py-1 bg-card border border-border rounded-lg font-mono text-xs">
+                    키프레임 {summary.keyframe_count}장
+                  </span>
                 )}
-                <span>
+                <span className="px-2.5 py-1 bg-card border border-border rounded-lg font-mono text-xs">
                   {new Date(summary.created_at).toLocaleDateString("ko-KR")}
                 </span>
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               {summary.sections.map((section, i) => (
                 <div
                   key={i}
-                  className="p-5 bg-white border border-gray-200 rounded-lg shadow-sm"
+                  className="p-5 bg-card border border-border rounded-xl card-hover"
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="text-lg font-semibold text-gray-900">
+                  <div className="flex items-start justify-between gap-3">
+                    <h3 className="text-lg font-semibold text-foreground">
                       {section.title}
                     </h3>
                     {section.timestamp_start !== null && summary && (
@@ -166,7 +170,7 @@ export default function SummaryDetailPage() {
                         href={getYoutubeTimestampUrl(summary.video_id, section.timestamp_start)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm text-red-600 font-mono whitespace-nowrap hover:text-red-800 hover:underline cursor-pointer"
+                        className="text-sm text-accent font-mono whitespace-nowrap hover:text-accent-hover hover:underline cursor-pointer transition-colors"
                         title="YouTube에서 해당 시점 재생"
                       >
                         [{formatTime(section.timestamp_start)}
@@ -176,7 +180,7 @@ export default function SummaryDetailPage() {
                       </a>
                     )}
                   </div>
-                  <p className="mt-2 text-gray-700 leading-relaxed whitespace-pre-wrap">
+                  <p className="mt-3 text-muted-light leading-relaxed whitespace-pre-wrap">
                     {section.content}
                   </p>
                 </div>
@@ -186,9 +190,13 @@ export default function SummaryDetailPage() {
         )}
       </main>
 
-      <footer className="border-t border-gray-200 bg-white">
-        <div className="max-w-4xl mx-auto px-4 py-4 text-center text-sm text-gray-400">
-          YTSummarizer - Powered by Gemini & Claude
+      <footer className="border-t border-border bg-[#05080f]">
+        <div className="max-w-5xl mx-auto px-6 py-6 flex items-center justify-between">
+          <span className="text-sm text-muted">YTSummarizer</span>
+          <div className="flex items-center gap-2 text-xs text-muted">
+            <span className="w-1.5 h-1.5 bg-green-500 rounded-full pulse-dot" />
+            Powered by Gemini & Claude
+          </div>
         </div>
       </footer>
     </div>

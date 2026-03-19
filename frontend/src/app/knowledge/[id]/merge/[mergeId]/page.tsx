@@ -92,58 +92,56 @@ export default function MergeReviewPage() {
   const getActionLabel = (action: string) => {
     switch (action) {
       case "update":
-        return { text: "업데이트", color: "bg-blue-100 text-blue-800" };
+        return { text: "업데이트", color: "bg-blue-500/20 text-blue-400" };
       case "new_section":
-        return { text: "새 섹션", color: "bg-green-100 text-green-800" };
+        return { text: "새 섹션", color: "bg-green-500/20 text-green-400" };
       default:
-        return { text: action, color: "bg-gray-100 text-gray-800" };
+        return { text: action, color: "bg-card text-muted-light" };
     }
   };
 
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="border-b border-gray-200 bg-white">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-3">
-          <Youtube className="w-8 h-8 text-red-600" />
-          <h1 className="text-xl font-bold text-gray-900">YTSummarizer</h1>
-          <span className="text-sm text-gray-500 hidden sm:inline">
-            병합 리뷰
-          </span>
+      <header className="glass-header border-b border-border sticky top-0 z-50">
+        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center gap-3">
+          <Youtube className="w-7 h-7 text-accent" />
+          <h1 className="text-lg font-bold text-foreground tracking-tight">YTSummarizer</h1>
+          <span className="text-sm text-muted hidden sm:inline">병합 리뷰</span>
         </div>
       </header>
 
-      <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-8">
+      <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-8">
         <Link
           href={`/knowledge/${kbId}`}
-          className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors mb-6"
+          className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground transition-colors duration-300 mb-6"
         >
           <ArrowLeft className="w-4 h-4" />
           종합본으로 돌아가기
         </Link>
 
         {loading && (
-          <div className="text-center py-16">
-            <Loader2 className="w-8 h-8 text-red-500 animate-spin mx-auto" />
+          <div className="text-center py-20">
+            <Loader2 className="w-8 h-8 text-accent animate-spin mx-auto" />
           </div>
         )}
 
         {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700">{error}</p>
+          <div className="mb-5 p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
+            <p className="text-red-400">{error}</p>
           </div>
         )}
 
         {merge && (
           <div className="space-y-6">
             {/* 헤더 */}
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <GitMerge className="w-5 h-5 text-blue-600" />
-                <h2 className="text-lg font-bold text-gray-900">
+            <div className="p-5 bg-blue-500/10 border border-blue-500/30 rounded-xl">
+              <div className="flex items-center gap-2.5 mb-2">
+                <GitMerge className="w-5 h-5 text-blue-400" />
+                <h2 className="text-lg font-bold text-foreground">
                   병합 리뷰: {merge.video_title}
                 </h2>
               </div>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-light">
                 아래 변경사항을 검토하고 승인 또는 거부하세요.
                 {merge.changes_diff.length}개의 변경이 감지되었습니다.
               </p>
@@ -156,44 +154,44 @@ export default function MergeReviewPage() {
                 return (
                   <div
                     key={i}
-                    className="border border-gray-200 rounded-lg overflow-hidden"
+                    className="border border-border rounded-xl overflow-hidden"
                   >
                     {/* 섹션 헤더 */}
-                    <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center gap-2">
+                    <div className="px-5 py-3.5 bg-card border-b border-border flex items-center gap-2">
                       {diff.action === "new_section" ? (
-                        <Plus className="w-4 h-4 text-green-600" />
+                        <Plus className="w-4 h-4 text-green-400" />
                       ) : (
-                        <RefreshCw className="w-4 h-4 text-blue-600" />
+                        <RefreshCw className="w-4 h-4 text-blue-400" />
                       )}
-                      <span className="font-semibold text-gray-900">
+                      <span className="font-semibold text-foreground">
                         {diff.section_title}
                       </span>
                       <span
-                        className={`px-2 py-0.5 text-xs rounded-full ${label.color}`}
+                        className={`px-2.5 py-0.5 text-xs rounded-lg ${label.color}`}
                       >
                         {label.text}
                       </span>
                     </div>
 
                     {/* 변경 내용 */}
-                    <div className="p-4">
+                    <div className="p-5 bg-surface">
                       {diff.action === "update" && diff.before && (
                         <div className="mb-4">
-                          <h4 className="text-sm font-medium text-red-700 mb-2">
+                          <h4 className="text-sm font-medium text-red-400 mb-2">
                             — 기존 내용
                           </h4>
-                          <div className="p-3 bg-red-50 border border-red-100 rounded text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                          <div className="p-4 bg-red-500/5 border border-red-500/20 rounded-xl text-sm text-muted-light whitespace-pre-wrap leading-relaxed">
                             {diff.before}
                           </div>
                         </div>
                       )}
                       <div>
-                        <h4 className="text-sm font-medium text-green-700 mb-2">
+                        <h4 className="text-sm font-medium text-green-400 mb-2">
                           {diff.action === "update"
                             ? "+ 병합 후 내용"
                             : "+ 새 내용"}
                         </h4>
-                        <div className="p-3 bg-green-50 border border-green-100 rounded text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                        <div className="p-4 bg-green-500/5 border border-green-500/20 rounded-xl text-sm text-muted-light whitespace-pre-wrap leading-relaxed">
                           {diff.after}
                         </div>
                       </div>
@@ -205,11 +203,11 @@ export default function MergeReviewPage() {
 
             {/* 승인/거부 버튼 */}
             {merge.status === "pending" && (
-              <div className="flex gap-3 pt-4 border-t border-gray-200">
+              <div className="flex gap-3 pt-4 border-t border-border">
                 <button
                   onClick={() => handleReview("approved")}
                   disabled={submitting}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 disabled:opacity-40 transition-all duration-300"
                 >
                   {submitting ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -221,7 +219,7 @@ export default function MergeReviewPage() {
                 <button
                   onClick={() => handleReview("rejected")}
                   disabled={submitting}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 border border-border text-muted-light rounded-xl font-medium hover:bg-card disabled:opacity-40 transition-all duration-300"
                 >
                   <X className="w-5 h-5" />
                   거부
@@ -231,10 +229,10 @@ export default function MergeReviewPage() {
 
             {merge.status !== "pending" && (
               <div
-                className={`p-4 rounded-lg text-center ${
+                className={`p-5 rounded-xl text-center ${
                   merge.status === "approved"
-                    ? "bg-green-50 text-green-700"
-                    : "bg-red-50 text-red-700"
+                    ? "bg-green-500/10 text-green-400"
+                    : "bg-red-500/10 text-red-400"
                 }`}
               >
                 {merge.status === "approved"
@@ -246,9 +244,13 @@ export default function MergeReviewPage() {
         )}
       </main>
 
-      <footer className="border-t border-gray-200 bg-white">
-        <div className="max-w-4xl mx-auto px-4 py-4 text-center text-sm text-gray-400">
-          YTSummarizer - Powered by Gemini & Claude
+      <footer className="border-t border-border bg-[#05080f]">
+        <div className="max-w-5xl mx-auto px-6 py-6 flex items-center justify-between">
+          <span className="text-sm text-muted">YTSummarizer</span>
+          <div className="flex items-center gap-2 text-xs text-muted">
+            <span className="w-1.5 h-1.5 bg-green-500 rounded-full pulse-dot" />
+            Powered by Gemini & Claude
+          </div>
         </div>
       </footer>
     </div>

@@ -124,20 +124,18 @@ export default function BatchPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="border-b border-gray-200 bg-white">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-3">
-          <Youtube className="w-8 h-8 text-red-600" />
-          <h1 className="text-xl font-bold text-gray-900">YTSummarizer</h1>
-          <span className="text-sm text-gray-500 hidden sm:inline">
-            배치 처리
-          </span>
+      <header className="glass-header border-b border-border sticky top-0 z-50">
+        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center gap-3">
+          <Youtube className="w-7 h-7 text-accent" />
+          <h1 className="text-lg font-bold text-foreground tracking-tight">YTSummarizer</h1>
+          <span className="text-sm text-muted hidden sm:inline">배치 처리</span>
         </div>
       </header>
 
-      <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-8">
+      <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-8">
         <Link
           href="/"
-          className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors mb-6"
+          className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground transition-colors duration-300 mb-6"
         >
           <ArrowLeft className="w-4 h-4" />
           홈으로 돌아가기
@@ -145,19 +143,19 @@ export default function BatchPage() {
 
         {/* 재생목록 URL 입력 */}
         <div className="mb-6 space-y-4">
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <input
               type="text"
               value={playlistUrl}
               onChange={(e) => setPlaylistUrl(e.target.value)}
               placeholder="YouTube 재생목록 URL을 붙여넣으세요"
-              className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-gray-900 placeholder-gray-400"
+              className="flex-1 px-5 py-3.5 bg-card border border-border rounded-xl text-foreground placeholder-muted transition-colors duration-300"
               disabled={loadingList || processing}
             />
             <button
               onClick={handleLoadPlaylist}
               disabled={loadingList || !playlistUrl.trim()}
-              className="px-6 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 disabled:opacity-50 flex items-center gap-2 transition-colors"
+              className="px-6 py-3.5 bg-accent text-white rounded-xl font-medium hover:bg-accent-hover disabled:opacity-40 flex items-center gap-2 transition-all duration-300"
             >
               {loadingList ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -172,41 +170,41 @@ export default function BatchPage() {
 
           {/* 옵션 */}
           {videos.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-5 bg-card border border-border rounded-xl">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-muted-light mb-1.5">
                   AI 엔진
                 </label>
                 <select
                   value={engine}
                   onChange={(e) => setEngine(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 bg-white"
+                  className="w-full px-3 py-2.5 bg-surface border border-border rounded-lg text-foreground"
                 >
                   <option value="gemini">Gemini Flash (무료)</option>
                   <option value="claude">Claude Sonnet (프리미엄)</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-muted-light mb-1.5">
                   상세도
                 </label>
                 <select
                   value={detailLevel}
                   onChange={(e) => setDetailLevel(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 bg-white"
+                  className="w-full px-3 py-2.5 bg-surface border border-border rounded-lg text-foreground"
                 >
                   <option value="brief">간략 요약</option>
                   <option value="detailed">상세 요약</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-muted-light mb-1.5">
                   요약 언어
                 </label>
                 <select
                   value={language}
                   onChange={(e) => setLanguage(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 bg-white"
+                  className="w-full px-3 py-2.5 bg-surface border border-border rounded-lg text-foreground"
                 >
                   <option value="ko">한국어</option>
                   <option value="en">English</option>
@@ -217,8 +215,8 @@ export default function BatchPage() {
         </div>
 
         {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700">{error}</p>
+          <div className="mb-5 p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
+            <p className="text-red-400">{error}</p>
           </div>
         )}
 
@@ -226,23 +224,23 @@ export default function BatchPage() {
         {videos.length > 0 && !results && (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <button
                   onClick={handleSelectAll}
-                  className="text-sm text-gray-500 hover:text-gray-700"
+                  className="text-sm text-muted hover:text-foreground transition-colors duration-300"
                 >
                   {selected.size === videos.length
                     ? "전체 해제"
                     : "전체 선택"}
                 </button>
-                <span className="text-sm text-gray-400">
-                  {selected.size}/{videos.length}개 선택
+                <span className="text-sm text-muted font-mono">
+                  {selected.size}/{videos.length}
                 </span>
               </div>
               <button
                 onClick={handleBatchSummarize}
                 disabled={processing || selected.size === 0}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50 flex items-center gap-2 transition-colors"
+                className="px-5 py-2.5 bg-accent text-white rounded-xl text-sm font-medium hover:bg-accent-hover disabled:opacity-40 flex items-center gap-2 transition-all duration-300"
               >
                 {processing ? (
                   <>
@@ -261,29 +259,29 @@ export default function BatchPage() {
             {videos.map((v) => (
               <label
                 key={v.video_id}
-                className={`flex items-center gap-3 p-3 bg-white border rounded-lg cursor-pointer transition-colors ${
+                className={`flex items-center gap-3 p-3.5 bg-card border rounded-xl cursor-pointer transition-all duration-300 ${
                   selected.has(v.url)
-                    ? "border-red-300 bg-red-50"
-                    : "border-gray-200 hover:border-gray-300"
+                    ? "border-accent/50 bg-accent-soft"
+                    : "border-border hover:border-border-hover"
                 }`}
               >
                 <input
                   type="checkbox"
                   checked={selected.has(v.url)}
                   onChange={() => toggleVideo(v.url)}
-                  className="w-4 h-4 text-red-600 rounded"
+                  className="w-4 h-4 accent-[var(--accent)] rounded"
                 />
                 <img
                   src={`https://img.youtube.com/vi/${v.video_id}/default.jpg`}
                   alt=""
-                  className="w-20 h-12 object-cover rounded hidden sm:block"
+                  className="w-20 h-12 object-cover rounded-lg hidden sm:block opacity-80"
                 />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">
+                  <p className="text-sm font-medium text-foreground truncate">
                     {v.title}
                   </p>
                   {v.duration && (
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted font-mono">
                       {formatDuration(v.duration)}
                     </p>
                   )}
@@ -295,12 +293,15 @@ export default function BatchPage() {
 
         {/* 처리 중 */}
         {processing && (
-          <div className="text-center py-12">
-            <Loader2 className="w-12 h-12 text-red-500 animate-spin mx-auto" />
-            <p className="mt-4 text-gray-600">
+          <div className="text-center py-16">
+            <div className="relative inline-block">
+              <div className="absolute inset-0 bg-accent/20 rounded-full blur-xl" />
+              <Loader2 className="w-14 h-14 text-accent animate-spin relative" />
+            </div>
+            <p className="mt-6 text-foreground font-medium">
               {selected.size}개 영상을 순차 요약하고 있습니다...
             </p>
-            <p className="mt-1 text-sm text-gray-400">
+            <p className="mt-2 text-sm text-muted">
               영상당 1~3분 소요. 브라우저를 닫지 마세요.
             </p>
           </div>
@@ -309,35 +310,35 @@ export default function BatchPage() {
         {/* 결과 */}
         {results && (
           <div className="space-y-3">
-            <h3 className="font-semibold text-gray-900">
+            <h3 className="font-semibold text-foreground">
               배치 처리 완료 —{" "}
-              {results.filter((r) => r.status === "success").length}/
+              <span className="text-green-400">{results.filter((r) => r.status === "success").length}</span>/
               {results.length}개 성공
             </h3>
             {results.map((r, i) => (
               <div
                 key={i}
-                className={`p-3 rounded-lg flex items-center gap-3 ${
+                className={`p-3.5 rounded-xl flex items-center gap-3 ${
                   r.status === "success"
-                    ? "bg-green-50 border border-green-200"
-                    : "bg-red-50 border border-red-200"
+                    ? "bg-green-500/10 border border-green-500/30"
+                    : "bg-red-500/10 border border-red-500/30"
                 }`}
               >
                 {r.status === "success" ? (
-                  <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-green-400 flex-shrink-0" />
                 ) : (
-                  <X className="w-5 h-5 text-red-600 flex-shrink-0" />
+                  <X className="w-5 h-5 text-red-400 flex-shrink-0" />
                 )}
                 <div className="flex-1 min-w-0">
                   {r.status === "success" ? (
                     <Link
                       href={`/summary/${r.id}`}
-                      className="text-sm font-medium text-green-800 hover:underline truncate block"
+                      className="text-sm font-medium text-green-300 hover:underline truncate block"
                     >
                       {r.title}
                     </Link>
                   ) : (
-                    <p className="text-sm text-red-800 truncate">
+                    <p className="text-sm text-red-300 truncate">
                       {r.error || "오류 발생"}
                     </p>
                   )}
@@ -346,7 +347,7 @@ export default function BatchPage() {
             ))}
             <Link
               href="/history"
-              className="inline-block mt-4 text-sm text-red-600 hover:underline"
+              className="inline-block mt-4 text-sm text-accent hover:underline"
             >
               저장된 요약 보기 →
             </Link>
@@ -355,19 +356,23 @@ export default function BatchPage() {
 
         {/* 빈 상태 */}
         {!loadingList && videos.length === 0 && !results && !processing && (
-          <div className="text-center text-gray-400 py-16">
-            <ListVideo className="w-16 h-16 mx-auto opacity-30" />
-            <p className="mt-4 text-lg">
+          <div className="text-center text-muted py-20">
+            <ListVideo className="w-16 h-16 mx-auto opacity-20" />
+            <p className="mt-4 text-lg text-muted-light">
               YouTube 재생목록 URL을 입력하면
             </p>
-            <p className="text-lg">여러 영상을 한 번에 요약합니다</p>
+            <p className="text-lg text-muted-light">여러 영상을 한 번에 요약합니다</p>
           </div>
         )}
       </main>
 
-      <footer className="border-t border-gray-200 bg-white">
-        <div className="max-w-4xl mx-auto px-4 py-4 text-center text-sm text-gray-400">
-          YTSummarizer - Powered by Gemini & Claude
+      <footer className="border-t border-border bg-[#05080f]">
+        <div className="max-w-5xl mx-auto px-6 py-6 flex items-center justify-between">
+          <span className="text-sm text-muted">YTSummarizer</span>
+          <div className="flex items-center gap-2 text-xs text-muted">
+            <span className="w-1.5 h-1.5 bg-green-500 rounded-full pulse-dot" />
+            Powered by Gemini & Claude
+          </div>
         </div>
       </footer>
     </div>

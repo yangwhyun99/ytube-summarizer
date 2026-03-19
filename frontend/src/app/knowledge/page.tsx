@@ -77,28 +77,26 @@ export default function KnowledgeListPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="border-b border-gray-200 bg-white">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-3">
-          <Youtube className="w-8 h-8 text-red-600" />
-          <h1 className="text-xl font-bold text-gray-900">YTSummarizer</h1>
-          <span className="text-sm text-gray-500 hidden sm:inline">
-            지식 종합본
-          </span>
+      <header className="glass-header border-b border-border sticky top-0 z-50">
+        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center gap-3">
+          <Youtube className="w-7 h-7 text-accent" />
+          <h1 className="text-lg font-bold text-foreground tracking-tight">YTSummarizer</h1>
+          <span className="text-sm text-muted hidden sm:inline">지식 종합본</span>
         </div>
       </header>
 
-      <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-8">
+      <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-8">
         <div className="flex items-center justify-between mb-6">
           <Link
             href="/"
-            className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground transition-colors duration-300"
           >
             <ArrowLeft className="w-4 h-4" />
             홈으로 돌아가기
           </Link>
           <button
             onClick={() => setShowCreate(!showCreate)}
-            className="flex items-center gap-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+            className="flex items-center gap-1.5 px-4 py-2.5 bg-accent text-white rounded-xl text-sm font-medium hover:bg-accent-hover transition-all duration-300"
           >
             <Plus className="w-4 h-4" />
             새 종합본
@@ -107,32 +105,32 @@ export default function KnowledgeListPage() {
 
         {/* 종합본 생성 폼 */}
         {showCreate && (
-          <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg space-y-3">
+          <div className="mb-6 p-5 bg-card border border-border rounded-xl space-y-3">
             <input
               type="text"
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               placeholder="종합본 제목 (예: Claude Code 종합 가이드)"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full px-4 py-3 bg-surface border border-border rounded-xl text-foreground placeholder-muted transition-colors duration-300"
             />
             <input
               type="text"
               value={newDesc}
               onChange={(e) => setNewDesc(e.target.value)}
               placeholder="설명 (선택사항)"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full px-4 py-3 bg-surface border border-border rounded-xl text-foreground placeholder-muted transition-colors duration-300"
             />
             <div className="flex gap-2">
               <button
                 onClick={handleCreate}
                 disabled={creating || !newTitle.trim()}
-                className="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 disabled:opacity-50 transition-colors"
+                className="px-5 py-2.5 bg-accent text-white rounded-xl text-sm font-medium hover:bg-accent-hover disabled:opacity-40 transition-all duration-300"
               >
                 {creating ? "생성 중..." : "생성"}
               </button>
               <button
                 onClick={() => setShowCreate(false)}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md text-sm hover:bg-gray-50 transition-colors"
+                className="px-5 py-2.5 border border-border text-muted-light rounded-xl text-sm hover:bg-card transition-all duration-300"
               >
                 취소
               </button>
@@ -141,14 +139,14 @@ export default function KnowledgeListPage() {
         )}
 
         {loading ? (
-          <div className="text-center py-16">
-            <Loader2 className="w-8 h-8 text-red-500 animate-spin mx-auto" />
+          <div className="text-center py-20">
+            <Loader2 className="w-8 h-8 text-accent animate-spin mx-auto" />
           </div>
         ) : bases.length === 0 ? (
-          <div className="text-center text-gray-400 py-16">
-            <BookOpen className="w-16 h-16 mx-auto opacity-30" />
-            <p className="mt-4 text-lg">아직 종합본이 없습니다</p>
-            <p className="mt-1 text-sm">
+          <div className="text-center text-muted py-20">
+            <BookOpen className="w-16 h-16 mx-auto opacity-20" />
+            <p className="mt-4 text-lg text-muted-light">아직 종합본이 없습니다</p>
+            <p className="mt-1.5 text-sm">
               종합본을 만들고, 영상 요약을 병합하여 지식을 축적하세요
             </p>
           </div>
@@ -157,22 +155,22 @@ export default function KnowledgeListPage() {
             {bases.map((kb) => (
               <div
                 key={kb.id}
-                className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm flex items-center gap-4"
+                className="p-4 bg-card border border-border rounded-xl card-hover flex items-center gap-4"
               >
-                <BookOpen className="w-10 h-10 text-red-500 flex-shrink-0" />
+                <BookOpen className="w-10 h-10 text-accent flex-shrink-0" strokeWidth={1.5} />
                 <div className="flex-1 min-w-0">
                   <Link
                     href={`/knowledge/${kb.id}`}
-                    className="font-semibold text-gray-900 hover:text-red-600 truncate block"
+                    className="font-semibold text-foreground hover:text-accent truncate block transition-colors duration-300"
                   >
                     {kb.title}
                   </Link>
                   {kb.description && (
-                    <p className="text-sm text-gray-500 truncate">
+                    <p className="text-sm text-muted truncate">
                       {kb.description}
                     </p>
                   )}
-                  <div className="mt-1 flex flex-wrap gap-2 text-xs text-gray-500">
+                  <div className="mt-1.5 flex flex-wrap gap-2 text-xs text-muted font-mono">
                     <span>{kb.section_count}개 섹션</span>
                     <span>{kb.source_count}개 영상</span>
                     <span>
@@ -183,7 +181,7 @@ export default function KnowledgeListPage() {
                 <button
                   onClick={() => handleDelete(kb.id)}
                   title="삭제"
-                  className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                  className="p-2 text-muted hover:text-red-400 transition-colors duration-300"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -193,9 +191,13 @@ export default function KnowledgeListPage() {
         )}
       </main>
 
-      <footer className="border-t border-gray-200 bg-white">
-        <div className="max-w-4xl mx-auto px-4 py-4 text-center text-sm text-gray-400">
-          YTSummarizer - Powered by Gemini & Claude
+      <footer className="border-t border-border bg-[#05080f]">
+        <div className="max-w-5xl mx-auto px-6 py-6 flex items-center justify-between">
+          <span className="text-sm text-muted">YTSummarizer</span>
+          <div className="flex items-center gap-2 text-xs text-muted">
+            <span className="w-1.5 h-1.5 bg-green-500 rounded-full pulse-dot" />
+            Powered by Gemini & Claude
+          </div>
         </div>
       </footer>
     </div>

@@ -3,7 +3,7 @@
 import asyncio
 import json
 import re
-import shutil
+import sys
 
 
 def extract_playlist_id(url: str) -> str:
@@ -16,13 +16,15 @@ def extract_playlist_id(url: str) -> str:
 
 async def get_playlist_videos(playlist_url: str) -> list[dict]:
     """yt-dlp로 재생목록의 영상 목록 추출 (다운로드 없이)"""
-    if not shutil.which("yt-dlp"):
+    try:
+        import yt_dlp  # noqa: F401
+    except ImportError:
         raise RuntimeError("yt-dlp가 설치되어 있지 않습니다.")
 
     playlist_id = extract_playlist_id(playlist_url)
 
     proc = await asyncio.create_subprocess_exec(
-        "yt-dlp",
+        sys.executable, "-m", "yt_dlp",
         "--flat-playlist",
         "--dump-json",
         f"https://www.youtube.com/playlist?list={playlist_id}",

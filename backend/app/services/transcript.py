@@ -4,6 +4,7 @@ import asyncio
 import os
 import re
 import shutil
+import sys
 import tempfile
 from dataclasses import dataclass
 
@@ -48,7 +49,9 @@ async def _whisper_transcribe(video_url: str) -> TranscriptResult:
 
     yt-dlp로 오디오를 추출하고 faster-whisper로 STT를 수행한다.
     """
-    if not shutil.which("yt-dlp"):
+    try:
+        import yt_dlp  # noqa: F401
+    except ImportError:
         raise RuntimeError("yt-dlp가 설치되어 있지 않습니다.")
 
     try:
@@ -62,7 +65,7 @@ async def _whisper_transcribe(video_url: str) -> TranscriptResult:
     try:
         # 1. yt-dlp로 오디오만 추출
         proc = await asyncio.create_subprocess_exec(
-            "yt-dlp",
+            sys.executable, "-m", "yt_dlp",
             "-x",
             "--audio-format", "mp3",
             "--audio-quality", "5",
@@ -119,9 +122,10 @@ async def get_transcript(video_url: str) -> TranscriptResult:
     모두 실패하면 Whisper fallback을 사용한다.
     """
     video_id = extract_video_id(video_url)
+    ytt_api = YouTubeTranscriptApi()
 
     try:
-        transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+        transcript_list = ytt_api.list(video_id)
     except (TranscriptsDisabled, VideoUnavailable):
         # 자막 비활성화 → Whisper fallback
         return await _whisper_transcribe(video_url)

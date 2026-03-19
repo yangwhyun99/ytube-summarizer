@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "YTSummarizer - YouTube 영상 요약",
+  title: "YTSummarizer - YouTube 영상 AI 요약",
   description: "YouTube 영상을 AI로 요약하고 지식 베이스를 구축하세요",
   viewport: {
     width: "device-width",
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "YTSummarizer",
   },
 };
@@ -38,7 +38,9 @@ export default function RootLayout({
       lang="ko"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col bg-[#0a0e1a] text-[#e8eaf0]">
+        {children}
+      </body>
     </html>
   );
 }

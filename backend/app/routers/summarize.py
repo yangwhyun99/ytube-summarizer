@@ -179,6 +179,7 @@ class BatchSummarizeRequest(BaseModel):
 async def batch_summarize(
     request: BatchSummarizeRequest,
     db: AsyncSession = Depends(get_db),
+    current_user: User | None = Depends(get_current_user),
 ):
     """여러 영상을 순차적으로 요약 (배치 처리)"""
     results: list[dict] = []
@@ -191,7 +192,7 @@ async def batch_summarize(
                 detail_level=request.detail_level,
                 language=request.language,
             )
-            response = await summarize(single_req, db)
+            response = await summarize(single_req, db, current_user)
             results.append({
                 "url": url,
                 "status": "success",

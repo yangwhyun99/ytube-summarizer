@@ -117,7 +117,7 @@ class GeminiEngine(SummaryEngine):
 
         import google.generativeai as genai
         genai.configure(api_key=api_key)
-        self._model = genai.GenerativeModel("gemini-2.5-flash-preview-05-20")
+        self._model = genai.GenerativeModel("gemini-2.5-flash")
 
     def name(self) -> str:
         return "gemini"
