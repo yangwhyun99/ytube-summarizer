@@ -31,3 +31,7 @@ Thumbs.db
 *.mp3
 keyframes/
 temp/
+*.db
+
+# Claude Code
+.claude/
