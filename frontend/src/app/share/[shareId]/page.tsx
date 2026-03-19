@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { Youtube, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import SummaryContent from "../../components/SummaryContent";
 
@@ -62,15 +62,14 @@ export default function SharedSummaryPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="glass-header border-b border-border sticky top-0 z-50">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center gap-3">
-          <Youtube className="w-7 h-7 text-accent" />
-          <h1 className="text-lg font-bold text-foreground tracking-tight">YTSummarizer</h1>
+      <header className="glass-nav fixed top-4 left-1/2 -translate-x-1/2 w-[92%] max-w-5xl rounded-2xl flex items-center gap-3 px-8 py-4 z-50">
+        <div className="flex items-center gap-3 w-full">
+          <Link href="/" className="text-xl font-black tracking-tighter text-accent font-headline">YTSummarizer</Link>
           <span className="text-sm text-muted hidden sm:inline">공유된 요약</span>
         </div>
       </header>
 
-      <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-8">
+      <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-8 pt-24">
         {loading && (
           <div className="text-center py-20">
             <Loader2 className="w-8 h-8 text-accent animate-spin mx-auto" />
@@ -89,7 +88,7 @@ export default function SharedSummaryPage() {
         {summary && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold text-foreground tracking-tight">
+              <h2 className="text-2xl font-bold text-foreground tracking-tight font-headline">
                 {summary.title}
               </h2>
               <div className="mt-3 flex flex-wrap gap-3 text-sm text-muted">
@@ -133,7 +132,7 @@ export default function SharedSummaryPage() {
         )}
       </main>
 
-      <footer className="border-t border-border bg-[#05080f]">
+      <footer className="border-t border-border bg-[#050505]">
         <div className="max-w-5xl mx-auto px-6 py-6 flex items-center justify-between">
           <span className="text-sm text-muted">YTSummarizer</span>
           <div className="flex items-center gap-2 text-xs text-muted">

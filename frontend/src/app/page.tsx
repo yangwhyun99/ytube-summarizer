@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import {
-  Youtube,
   Loader2,
   Settings2,
   ChevronDown,
@@ -11,13 +10,10 @@ import {
   History,
   BookOpen,
   ListVideo,
-  User,
   LogOut,
   ArrowRight,
-  Play,
   Zap,
   Globe,
-  Shield,
   Sparkles,
 } from "lucide-react";
 import Link from "next/link";
@@ -55,16 +51,10 @@ function extractVideoId(videoUrl: string): string {
   return match ? match[1] : "";
 }
 
-function getYoutubeTimestampUrl(videoUrl: string, seconds: number): string {
-  const videoId = extractVideoId(videoUrl);
-  return `https://www.youtube.com/watch?v=${videoId}&t=${Math.floor(seconds)}s`;
-}
-
-// 데모 요약 미리보기 데이터
 const demoSections = [
-  { title: "핵심 개념 소개", time: "0:00", content: "영상의 주요 주제와 핵심 키워드를 자동으로 추출하여 구조화된 요약을 생성합니다..." },
-  { title: "실전 활용 방법", time: "5:32", content: "트랜스크립트와 키프레임을 결합하여 시각적 맥락까지 포함한 완벽한 요약..." },
-  { title: "결론 및 인사이트", time: "12:47", content: "영상의 핵심 메시지를 3줄로 압축하고, 관련 태그를 자동 생성합니다..." },
+  { num: "01", title: "핵심 개념 소개", content: "영상의 주요 주제와 핵심 키워드를 자동으로 추출하여 구조화된 요약을 생성합니다." },
+  { num: "02", title: "실전 활용 방법", content: "트랜스크립트와 키프레임을 결합하여 시각적 맥락까지 포함한 완벽한 요약을 제공합니다." },
+  { num: "03", title: "결론 및 인사이트", content: "영상의 핵심 메시지를 압축하고, 관련 태그를 자동으로 생성합니다." },
 ];
 
 export default function Home() {
@@ -120,276 +110,226 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* ===== 헤더 ===== */}
-      <header className="glass-header border-b border-border sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center gap-3">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-accent/20 rounded-lg flex items-center justify-center">
-              <Play className="w-4 h-4 text-accent fill-accent" />
-            </div>
-            <h1 className="text-lg font-bold text-foreground tracking-tight">YTSummarizer</h1>
-          </div>
-          <div className="ml-auto flex items-center gap-6">
-            <Link href="/batch" className="text-sm text-muted hover:text-foreground transition-colors duration-300 hidden sm:flex items-center gap-1.5">
-              <ListVideo className="w-4 h-4" />배치
-            </Link>
-            <Link href="/knowledge" className="text-sm text-muted hover:text-foreground transition-colors duration-300 hidden sm:flex items-center gap-1.5">
-              <BookOpen className="w-4 h-4" />종합본
-            </Link>
-            <Link href="/history" className="text-sm text-muted hover:text-foreground transition-colors duration-300 hidden sm:flex items-center gap-1.5">
-              <History className="w-4 h-4" />저장된 요약
-            </Link>
-            {currentUser ? (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-light hidden sm:inline">
-                  {currentUser.username}
-                  {currentUser.plan === "premium" && (
-                    <span className="ml-1.5 px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 text-xs rounded font-mono">PRO</span>
-                  )}
-                </span>
-                <button onClick={handleLogout} className="p-1.5 text-muted hover:text-foreground transition-colors" title="로그아웃">
-                  <LogOut className="w-4 h-4" />
-                </button>
-              </div>
-            ) : (
-              <Link href="/login" className="px-4 py-1.5 text-sm border border-border rounded-lg text-muted-light hover:text-foreground hover:border-border-hover transition-all duration-300">
-                로그인
-              </Link>
-            )}
-          </div>
+      {/* ===== 플로팅 네비게이션 ===== */}
+      <nav className="fixed top-4 left-1/2 -translate-x-1/2 w-[92%] max-w-5xl rounded-2xl glass-nav flex justify-between items-center px-8 py-4 z-50">
+        <Link href="/" className="text-2xl font-black tracking-tighter text-accent font-headline">
+          YTSummarizer
+        </Link>
+        <div className="hidden md:flex gap-8 items-center">
+          <Link href="/history" className="text-muted-light hover:text-white transition-colors text-sm">
+            History
+          </Link>
+          <Link href="/batch" className="text-muted-light hover:text-white transition-colors text-sm">
+            Batch
+          </Link>
+          <Link href="/knowledge" className="text-muted-light hover:text-white transition-colors text-sm">
+            Knowledge
+          </Link>
         </div>
-      </header>
+        {currentUser ? (
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-muted-light hidden sm:inline">
+              {currentUser.username}
+              {currentUser.plan === "premium" && (
+                <span className="ml-1.5 px-1.5 py-0.5 bg-accent/20 text-accent text-xs rounded font-mono">PRO</span>
+              )}
+            </span>
+            <button onClick={handleLogout} className="p-1.5 text-muted hover:text-white transition-colors" title="로그아웃">
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+        ) : (
+          <Link href="/login" className="bg-accent text-white px-6 py-2 rounded-xl font-bold text-sm hover:scale-105 transition-transform duration-300 active:scale-95">
+            Get Started
+          </Link>
+        )}
+      </nav>
 
       <main className="flex-1">
         {/* ===== 히어로 (요약 결과 없을 때) ===== */}
         {!loading && !summary && !error && (
           <>
-            {/* 히어로 섹션 */}
-            <section className="hero-glow relative">
-              <div className="max-w-6xl mx-auto px-6 pt-20 pb-16 relative z-10">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                  {/* 왼쪽: 텍스트 + CTA */}
-                  <div>
-                    <div className="slide-up">
-                      <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-accent/10 border border-accent/20 rounded-full text-xs text-accent font-medium mb-6">
-                        <Sparkles className="w-3.5 h-3.5" />
-                        AI 기반 영상 요약 플랫폼
-                      </span>
+            <section className="hero-glow relative min-h-screen pt-32 pb-24 px-6 max-w-7xl mx-auto">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-24 items-start">
+                {/* 왼쪽: 콘텐츠 + 입력 */}
+                <div className="lg:col-span-7 space-y-12 relative">
+                  {/* 사이드 라벨 */}
+                  <div className="absolute -left-12 top-0 hidden xl:block">
+                    <div className="[writing-mode:vertical-lr] rotate-180 text-[0.625rem] font-bold tracking-[0.4em] text-white/20 uppercase whitespace-nowrap">
+                      Editorial Futurism / AI-Summarizer / V2.4
                     </div>
+                  </div>
 
-                    <h2 className="slide-up-delay-1 text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1] mb-6">
-                      <span className="shimmer-text">YouTube 영상을</span>
-                      <br />
-                      <span className="text-foreground">3분 만에</span>
-                      <br />
-                      <span className="text-accent">완벽하게 요약</span>
+                  <div className="space-y-6">
+                    <span className="slide-up text-[0.6875rem] uppercase tracking-[0.2em] text-secondary font-bold">
+                      The Future of Content Consumption
+                    </span>
+                    <h2 className="slide-up-delay-1 text-5xl md:text-7xl font-headline font-extrabold tracking-[-0.04em] leading-[1.1] text-white">
+                      MASTER <br />YOUTUBE IN <br /><span className="text-accent">3 MINUTES.</span>
                     </h2>
-
-                    <p className="slide-up-delay-2 text-muted-light text-lg leading-relaxed mb-8 max-w-md">
-                      트랜스크립트 추출, 키프레임 분석, AI 요약을 하나의 파이프라인으로.
-                      긴 영상도 핵심만 빠르게 파악하세요.
+                    <p className="slide-up-delay-2 text-muted-light text-lg md:text-xl max-w-xl leading-relaxed font-light">
+                      시간 낭비는 이제 그만. AI가 트랜스크립트와 키프레임을 분석하여 핵심 인사이트만 골라냅니다.
                     </p>
+                  </div>
 
-                    {/* URL 입력 — 히어로 안에 통합 */}
-                    <form onSubmit={handleSubmit} className="slide-up-delay-3">
-                      <div className="flex gap-2">
-                        <div className="flex-1 relative">
-                          <Youtube className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-accent/60" />
-                          <input
-                            type="text"
-                            value={url}
-                            onChange={(e) => setUrl(e.target.value)}
-                            placeholder="YouTube URL을 붙여넣으세요"
-                            className="w-full pl-12 pr-4 py-4 bg-card border border-border rounded-2xl text-foreground placeholder-muted transition-all duration-300 text-base"
-                            disabled={loading}
-                          />
-                        </div>
-                        <button
-                          type="submit"
-                          disabled={loading || !url.trim()}
-                          className="glow-btn px-7 py-4 bg-accent text-white rounded-2xl font-semibold hover:bg-accent-hover disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-2 transition-all duration-300 group whitespace-nowrap relative z-10"
-                        >
-                          요약하기
-                          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                        </button>
+                  {/* URL 입력 */}
+                  <form onSubmit={handleSubmit} className="slide-up-delay-3 max-w-2xl">
+                    <div className="flex flex-col md:flex-row gap-4 items-center bg-card p-2 rounded-2xl border-b-2 border-border focus-within:border-secondary transition-all">
+                      <div className="flex-1 flex items-center px-4 w-full">
+                        <svg className="w-5 h-5 text-muted-light mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.86-2.07a4.5 4.5 0 00-1.242-7.244l-4.5-4.5a4.5 4.5 0 00-6.364 6.364l1.757 1.757" />
+                        </svg>
+                        <input
+                          type="text"
+                          value={url}
+                          onChange={(e) => setUrl(e.target.value)}
+                          placeholder="https://www.youtube.com/watch?v=..."
+                          className="bg-transparent border-none focus:ring-0 text-white w-full text-sm placeholder:text-[#555]"
+                          disabled={loading}
+                        />
                       </div>
                       <button
-                        type="button"
-                        onClick={() => setShowOptions(!showOptions)}
-                        className="mt-3 flex items-center gap-1.5 text-sm text-muted hover:text-muted-light transition-colors"
+                        type="submit"
+                        disabled={loading || !url.trim()}
+                        className="w-full md:w-auto bg-accent text-white px-8 py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:scale-105 transition-transform shadow-[0px_10px_30px_rgba(255,85,68,0.15)] disabled:opacity-30 disabled:hover:scale-100"
                       >
-                        <Settings2 className="w-3.5 h-3.5" />
-                        고급 옵션
-                        <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${showOptions ? "rotate-180" : ""}`} />
+                        Summarize
+                        <Sparkles className="w-4 h-4" />
                       </button>
-                      {showOptions && (
-                        <div className="mt-3 grid grid-cols-3 gap-3 p-4 bg-card border border-border rounded-xl">
-                          <div>
-                            <label className="block text-xs font-medium text-muted-light mb-1">AI 엔진</label>
-                            <select value={engine} onChange={(e) => setEngine(e.target.value)} className="w-full px-3 py-2 bg-surface border border-border rounded-lg text-sm text-foreground">
-                              <option value="gemini">Gemini (무료)</option>
-                              <option value="claude">Claude (프리미엄)</option>
-                            </select>
-                          </div>
-                          <div>
-                            <label className="block text-xs font-medium text-muted-light mb-1">상세도</label>
-                            <select value={detailLevel} onChange={(e) => setDetailLevel(e.target.value)} className="w-full px-3 py-2 bg-surface border border-border rounded-lg text-sm text-foreground">
-                              <option value="brief">간략</option>
-                              <option value="detailed">상세</option>
-                            </select>
-                          </div>
-                          <div>
-                            <label className="block text-xs font-medium text-muted-light mb-1">언어</label>
-                            <select value={language} onChange={(e) => setLanguage(e.target.value)} className="w-full px-3 py-2 bg-surface border border-border rounded-lg text-sm text-foreground">
-                              <option value="ko">한국어</option>
-                              <option value="en">English</option>
-                            </select>
-                          </div>
-                        </div>
-                      )}
-                    </form>
-                  </div>
+                    </div>
 
-                  {/* 오른쪽: 데모 요약 미리보기 카드 */}
-                  <div className="hidden lg:block">
-                    <div className="float gradient-border p-6 shadow-2xl shadow-black/40">
-                      {/* 카드 상단 — 가짜 영상 정보 */}
-                      <div className="flex items-center gap-3 mb-5">
-                        <div className="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center">
-                          <Play className="w-5 h-5 text-accent fill-accent" />
+                    <button
+                      type="button"
+                      onClick={() => setShowOptions(!showOptions)}
+                      className="mt-3 flex items-center gap-1.5 text-xs text-muted hover:text-muted-light transition-colors uppercase tracking-wider"
+                    >
+                      <Settings2 className="w-3.5 h-3.5" />
+                      Options
+                      <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${showOptions ? "rotate-180" : ""}`} />
+                    </button>
+
+                    {showOptions && (
+                      <div className="mt-3 grid grid-cols-3 gap-3 p-4 bg-surface border border-border rounded-xl">
+                        <div>
+                          <label className="block text-[0.625rem] font-bold text-muted uppercase tracking-wider mb-1">Engine</label>
+                          <select value={engine} onChange={(e) => setEngine(e.target.value)} className="w-full px-3 py-2 bg-card border border-border rounded-lg text-sm text-foreground">
+                            <option value="gemini">Gemini (Free)</option>
+                            <option value="claude">Claude (Pro)</option>
+                          </select>
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-foreground">AI 기술의 미래와 활용법</p>
-                          <p className="text-xs text-muted font-mono">23:47 · Gemini Flash · 3개 섹션</p>
+                          <label className="block text-[0.625rem] font-bold text-muted uppercase tracking-wider mb-1">Detail</label>
+                          <select value={detailLevel} onChange={(e) => setDetailLevel(e.target.value)} className="w-full px-3 py-2 bg-card border border-border rounded-lg text-sm text-foreground">
+                            <option value="brief">Brief</option>
+                            <option value="detailed">Detailed</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-[0.625rem] font-bold text-muted uppercase tracking-wider mb-1">Language</label>
+                          <select value={language} onChange={(e) => setLanguage(e.target.value)} className="w-full px-3 py-2 bg-card border border-border rounded-lg text-sm text-foreground">
+                            <option value="ko">한국어</option>
+                            <option value="en">English</option>
+                          </select>
                         </div>
                       </div>
+                    )}
+                  </form>
+                </div>
 
-                      {/* 섹션 미리보기 */}
-                      <div className="space-y-3">
-                        {demoSections.map((s, i) => (
-                          <div key={i} className="p-3.5 bg-surface/80 rounded-xl border border-border/60">
-                            <div className="flex items-center justify-between mb-1.5">
-                              <h4 className="text-sm font-semibold text-foreground">{s.title}</h4>
-                              <span className="text-xs text-accent font-mono">{s.time}</span>
-                            </div>
-                            <p className="text-xs text-muted leading-relaxed line-clamp-2">{s.content}</p>
-                          </div>
-                        ))}
+                {/* 오른쪽: 아티팩트 카드 */}
+                <div className="lg:col-span-5 relative mt-12 lg:mt-0 hidden lg:block">
+                  <div className="absolute -top-20 -right-20 w-80 h-80 bg-accent/10 rounded-full blur-[120px]" />
+                  <div className="float relative bg-surface-high/40 backdrop-blur-2xl rounded-3xl p-8 border border-white/5 shadow-2xl">
+                    {/* 카드 헤더 */}
+                    <div className="flex justify-between items-center mb-8">
+                      <div className="flex gap-2">
+                        <div className="w-3 h-3 rounded-full bg-red-500/40" />
+                        <div className="w-3 h-3 rounded-full bg-yellow-500/40" />
+                        <div className="w-3 h-3 rounded-full bg-green-500/40" />
                       </div>
+                      <span className="text-[0.625rem] font-bold uppercase tracking-widest text-muted-light bg-white/5 px-2 py-1 rounded">AI-Analysis v2.4</span>
+                    </div>
 
-                      {/* 하단 액션 */}
-                      <div className="mt-4 flex gap-2">
-                        <span className="px-2.5 py-1 bg-accent/10 text-accent text-xs rounded-lg font-medium">PDF 내보내기</span>
-                        <span className="px-2.5 py-1 bg-blue-500/10 text-blue-400 text-xs rounded-lg font-medium">공유하기</span>
-                        <span className="px-2.5 py-1 bg-green-500/10 text-green-400 text-xs rounded-lg font-medium">종합본에 추가</span>
+                    {/* 데모 썸네일 */}
+                    <div className="aspect-video rounded-xl bg-card relative overflow-hidden mb-6">
+                      <div className="absolute inset-0 bg-gradient-to-br from-accent/20 to-secondary/10" />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20">
+                          <svg className="w-5 h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                        </div>
                       </div>
+                    </div>
+
+                    {/* 데모 섹션 */}
+                    <h3 className="text-lg font-headline font-bold text-white mb-4">AI 기술의 미래와 활용법</h3>
+                    <div className="space-y-3">
+                      {demoSections.map((s) => (
+                        <div key={s.num} className="flex items-start gap-3">
+                          <span className="text-secondary text-xs font-bold mt-0.5">{s.num}</span>
+                          <p className="text-sm text-muted-light leading-relaxed">{s.content}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="pt-5 mt-5 border-t border-white/5 flex justify-between items-center">
+                      <div className="flex -space-x-2">
+                        <div className="w-8 h-8 rounded-full border-2 border-background bg-surface-high flex items-center justify-center text-[10px] font-bold">AI</div>
+                        <div className="w-8 h-8 rounded-full border-2 border-background bg-accent flex items-center justify-center text-[10px] font-bold text-white">YT</div>
+                      </div>
+                      <span className="text-[0.6875rem] font-bold text-secondary uppercase tracking-tighter">View Full Summary →</span>
                     </div>
                   </div>
                 </div>
               </div>
             </section>
 
-            {/* 스탯 바 */}
-            <section className="border-y border-border bg-card/50">
-              <div className="max-w-6xl mx-auto px-6 py-8">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
-                  <div className="count-up">
-                    <p className="text-3xl font-bold text-foreground stat-glow">AI</p>
-                    <p className="text-xs text-muted mt-1">Gemini & Claude 듀얼 엔진</p>
+            {/* 피처 그리드 */}
+            <section className="py-24 px-6 max-w-7xl mx-auto">
+              <div className="flex flex-col md:flex-row justify-between items-end gap-6 border-b border-border pb-8 mb-12">
+                <h2 className="text-3xl font-headline font-bold text-white tracking-tight">왜 YTSummarizer 인가</h2>
+                <p className="text-muted-light text-sm max-w-xs">독보적인 AI 파이프라인으로 정보를 압축합니다. 단순 요약을 넘어 인사이트를 제공합니다.</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-card p-8 rounded-2xl card-hover group">
+                  <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <Zap className="w-6 h-6 text-accent" />
                   </div>
-                  <div className="count-up" style={{ animationDelay: "0.1s" }}>
-                    <p className="text-3xl font-bold text-foreground stat-glow">∞</p>
-                    <p className="text-xs text-muted mt-1">영상 길이 제한 없음</p>
+                  <h4 className="text-lg font-headline font-bold mb-2 text-white">Fast Analysis</h4>
+                  <p className="text-sm text-muted-light leading-relaxed">1시간 분량도 단 10초면 충분합니다. 영상이 끝나기도 전에 요약을 받아보세요.</p>
+                </div>
+                <div className="bg-card p-8 rounded-2xl card-hover group">
+                  <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <BookOpen className="w-6 h-6 text-secondary" />
                   </div>
-                  <div className="count-up" style={{ animationDelay: "0.2s" }}>
-                    <p className="text-3xl font-bold text-accent stat-glow">5+</p>
-                    <p className="text-xs text-muted mt-1">내보내기 형식</p>
+                  <h4 className="text-lg font-headline font-bold mb-2 text-white">Key Highlights</h4>
+                  <p className="text-sm text-muted-light leading-relaxed">타임스탬프와 함께 핵심 장면만 추출하여 구조화된 요약 리포트를 구성합니다.</p>
+                </div>
+                <div className="bg-card p-8 rounded-2xl card-hover group">
+                  <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <Globe className="w-6 h-6 text-white" />
                   </div>
-                  <div className="count-up" style={{ animationDelay: "0.3s" }}>
-                    <p className="text-3xl font-bold text-foreground stat-glow">100%</p>
-                    <p className="text-xs text-muted mt-1">무료로 시작하기</p>
+                  <h4 className="text-lg font-headline font-bold mb-2 text-white">Multi-Language</h4>
+                  <p className="text-sm text-muted-light leading-relaxed">한국어, 영어 등 다국어 지원. 외국어 강의도 한국어로 즉시 요약합니다.</p>
+                </div>
+                <div className="bg-card p-8 rounded-2xl card-hover group">
+                  <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <FileDown className="w-6 h-6 text-accent" />
                   </div>
+                  <h4 className="text-lg font-headline font-bold mb-2 text-white">Export to PDF</h4>
+                  <p className="text-sm text-muted-light leading-relaxed">분석된 모든 내용은 고해상도 PDF, DOCX로 내보내기 가능합니다.</p>
                 </div>
               </div>
             </section>
 
-            {/* 기능 소개 카드 */}
-            <section className="py-20">
-              <div className="max-w-6xl mx-auto px-6">
-                <div className="text-center mb-14">
-                  <h3 className="text-3xl font-bold text-foreground tracking-tight mb-3">어떻게 동작하나요?</h3>
-                  <p className="text-muted-light max-w-lg mx-auto">URL을 입력하면 3단계 AI 파이프라인이 영상을 분석합니다</p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {/* Step 1 */}
-                  <div className="group gradient-border p-7 card-hover cursor-default">
-                    <div className="relative z-10">
-                      <div className="w-12 h-12 bg-accent/10 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-accent/20 transition-colors">
-                        <Globe className="w-6 h-6 text-accent" strokeWidth={1.5} />
-                      </div>
-                      <div className="text-xs text-accent font-mono mb-2">STEP 01</div>
-                      <h4 className="text-lg font-semibold text-foreground mb-2">트랜스크립트 추출</h4>
-                      <p className="text-sm text-muted leading-relaxed">
-                        자동자막, 수동자막을 우선 추출하고 없으면 Whisper AI로 음성을 직접 인식합니다.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Step 2 */}
-                  <div className="group gradient-border p-7 card-hover cursor-default">
-                    <div className="relative z-10">
-                      <div className="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-blue-500/20 transition-colors">
-                        <Zap className="w-6 h-6 text-blue-400" strokeWidth={1.5} />
-                      </div>
-                      <div className="text-xs text-blue-400 font-mono mb-2">STEP 02</div>
-                      <h4 className="text-lg font-semibold text-foreground mb-2">키프레임 분석</h4>
-                      <p className="text-sm text-muted leading-relaxed">
-                        영상의 장면 전환을 감지하여 핵심 프레임을 캡처하고, 텍스트와 함께 AI에 전달합니다.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Step 3 */}
-                  <div className="group gradient-border p-7 card-hover cursor-default">
-                    <div className="relative z-10">
-                      <div className="w-12 h-12 bg-purple-500/10 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-purple-500/20 transition-colors">
-                        <Sparkles className="w-6 h-6 text-purple-400" strokeWidth={1.5} />
-                      </div>
-                      <div className="text-xs text-purple-400 font-mono mb-2">STEP 03</div>
-                      <h4 className="text-lg font-semibold text-foreground mb-2">AI 요약 생성</h4>
-                      <p className="text-sm text-muted leading-relaxed">
-                        Gemini 또는 Claude가 섹션별로 구조화된 요약을 생성하고 타임스탬프를 매핑합니다.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* 추가 기능 하이라이트 */}
-            <section className="py-16 border-t border-border">
-              <div className="max-w-6xl mx-auto px-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="p-5 bg-card border border-border rounded-xl card-hover">
-                    <ListVideo className="w-5 h-5 text-accent mb-3" strokeWidth={1.5} />
-                    <h5 className="text-sm font-semibold text-foreground mb-1">배치 처리</h5>
-                    <p className="text-xs text-muted leading-relaxed">재생목록 전체를 한 번에 요약</p>
-                  </div>
-                  <div className="p-5 bg-card border border-border rounded-xl card-hover">
-                    <BookOpen className="w-5 h-5 text-blue-400 mb-3" strokeWidth={1.5} />
-                    <h5 className="text-sm font-semibold text-foreground mb-1">지식 종합본</h5>
-                    <p className="text-xs text-muted leading-relaxed">여러 요약을 병합해 지식 베이스 구축</p>
-                  </div>
-                  <div className="p-5 bg-card border border-border rounded-xl card-hover">
-                    <FileDown className="w-5 h-5 text-green-400 mb-3" strokeWidth={1.5} />
-                    <h5 className="text-sm font-semibold text-foreground mb-1">PDF / DOCX 내보내기</h5>
-                    <p className="text-xs text-muted leading-relaxed">요약본을 문서로 바로 저장</p>
-                  </div>
-                  <div className="p-5 bg-card border border-border rounded-xl card-hover">
-                    <Shield className="w-5 h-5 text-purple-400 mb-3" strokeWidth={1.5} />
-                    <h5 className="text-sm font-semibold text-foreground mb-1">공유 & 협업</h5>
-                    <p className="text-xs text-muted leading-relaxed">링크 한 번으로 요약 공유</p>
+            {/* CTA 배너 */}
+            <section className="px-6 pb-24 max-w-7xl mx-auto">
+              <div className="bg-accent rounded-[3rem] p-12 md:p-24 overflow-hidden relative">
+                <div className="relative z-10 max-w-2xl space-y-8">
+                  <h2 className="text-4xl md:text-6xl font-headline font-black text-[#5c0001] leading-tight">지식의 지평을 <br />넓히는 기술.</h2>
+                  <p className="text-[#5c0001]/80 text-lg font-medium">단순한 요약 서비스를 넘어, 당신의 학습 능력을 증폭시키는 인텔리전트 툴킷입니다.</p>
+                  <div className="flex gap-4">
+                    <Link href="/login" className="bg-[#050505] text-white px-10 py-5 rounded-2xl font-bold hover:scale-105 transition-transform">시작하기</Link>
+                    <Link href="/knowledge" className="bg-transparent border-2 border-[#5c0001]/20 text-[#5c0001] px-10 py-5 rounded-2xl font-bold hover:bg-[#5c0001]/10 transition-colors">둘러보기</Link>
                   </div>
                 </div>
               </div>
@@ -397,30 +337,29 @@ export default function Home() {
           </>
         )}
 
-        {/* ===== 요약 중일 때 (로딩) ===== */}
+        {/* ===== 로딩 ===== */}
         {loading && (
-          <div className="max-w-4xl mx-auto px-6 py-8">
+          <div className="max-w-4xl mx-auto px-6 pt-32 pb-8">
             <form onSubmit={handleSubmit} className="mb-8">
-              <div className="flex gap-2">
-                <div className="flex-1 relative">
-                  <Youtube className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-accent/60" />
-                  <input type="text" value={url} onChange={(e) => setUrl(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-card border border-border rounded-2xl text-foreground placeholder-muted" disabled />
+              <div className="flex flex-col md:flex-row gap-4 items-center bg-card p-2 rounded-2xl border-b-2 border-border">
+                <div className="flex-1 flex items-center px-4 w-full">
+                  <input type="text" value={url} className="bg-transparent border-none focus:ring-0 text-white w-full text-sm" disabled />
                 </div>
-                <button type="submit" disabled className="px-7 py-4 bg-accent text-white rounded-2xl font-semibold opacity-50 flex items-center gap-2">
-                  <Loader2 className="w-5 h-5 animate-spin" />요약 중...
+                <button disabled className="w-full md:w-auto bg-accent/50 text-white px-8 py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />Analyzing...
                 </button>
               </div>
             </form>
-            <div className="text-center py-16">
+            <div className="text-center py-20">
               <div className="relative inline-block">
                 <div className="absolute inset-0 bg-accent/20 rounded-full blur-2xl scale-150" />
                 <Loader2 className="w-16 h-16 text-accent animate-spin relative" />
               </div>
-              <p className="mt-8 text-xl font-semibold text-foreground">영상을 분석하고 있습니다</p>
-              <p className="mt-2 text-muted">트랜스크립트 추출 → 키프레임 캡처 → AI 요약 생성</p>
+              <p className="mt-8 text-xl font-headline font-bold text-white">영상을 분석하고 있습니다</p>
+              <p className="mt-2 text-muted text-sm">트랜스크립트 추출 → 키프레임 캡처 → AI 요약 생성</p>
               <div className="mt-6 flex justify-center gap-2">
-                {["추출 중", "분석 중", "생성 중"].map((step, i) => (
-                  <span key={i} className="px-3 py-1 bg-card border border-border rounded-full text-xs text-muted font-mono">
+                {["EXTRACT", "ANALYZE", "GENERATE"].map((step, i) => (
+                  <span key={i} className="px-3 py-1 bg-card border border-border rounded-lg text-[0.625rem] text-muted font-bold uppercase tracking-wider">
                     {step}
                   </span>
                 ))}
@@ -431,48 +370,45 @@ export default function Home() {
 
         {/* ===== 에러 ===== */}
         {error && (
-          <div className="max-w-4xl mx-auto px-6 py-8">
+          <div className="max-w-4xl mx-auto px-6 pt-32 pb-8">
             <form onSubmit={handleSubmit} className="mb-6">
-              <div className="flex gap-2">
-                <div className="flex-1 relative">
-                  <Youtube className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-accent/60" />
-                  <input type="text" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="YouTube URL을 붙여넣으세요" className="w-full pl-12 pr-4 py-4 bg-card border border-border rounded-2xl text-foreground placeholder-muted" />
+              <div className="flex flex-col md:flex-row gap-4 items-center bg-card p-2 rounded-2xl border-b-2 border-border focus-within:border-secondary transition-all">
+                <div className="flex-1 flex items-center px-4 w-full">
+                  <input type="text" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://www.youtube.com/watch?v=..." className="bg-transparent border-none focus:ring-0 text-white w-full text-sm placeholder:text-[#555]" />
                 </div>
-                <button type="submit" disabled={!url.trim()} className="glow-btn px-7 py-4 bg-accent text-white rounded-2xl font-semibold hover:bg-accent-hover disabled:opacity-30 flex items-center gap-2 transition-all group relative z-10">
-                  다시 시도<ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                <button type="submit" disabled={!url.trim()} className="w-full md:w-auto bg-accent text-white px-8 py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:scale-105 transition-transform disabled:opacity-30">
+                  Retry <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
             </form>
-            <div className="p-5 bg-red-500/10 border border-red-500/30 rounded-2xl">
-              <p className="text-red-400 font-medium">{error}</p>
+            <div className="p-5 bg-accent/10 border border-accent/30 rounded-2xl">
+              <p className="text-accent font-medium text-sm">{error}</p>
             </div>
           </div>
         )}
 
         {/* ===== 요약 결과 ===== */}
         {summary && (
-          <div className="max-w-4xl mx-auto px-6 py-8">
-            {/* 입력 폼 유지 */}
+          <div className="max-w-4xl mx-auto px-6 pt-32 pb-8">
             <form onSubmit={handleSubmit} className="mb-8">
-              <div className="flex gap-2">
-                <div className="flex-1 relative">
-                  <Youtube className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-accent/60" />
-                  <input type="text" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="새 URL을 입력하세요" className="w-full pl-12 pr-4 py-4 bg-card border border-border rounded-2xl text-foreground placeholder-muted transition-all duration-300" />
+              <div className="flex flex-col md:flex-row gap-4 items-center bg-card p-2 rounded-2xl border-b-2 border-border focus-within:border-secondary transition-all">
+                <div className="flex-1 flex items-center px-4 w-full">
+                  <input type="text" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="새 URL을 입력하세요" className="bg-transparent border-none focus:ring-0 text-white w-full text-sm placeholder:text-[#555]" />
                 </div>
-                <button type="submit" disabled={loading || !url.trim()} className="glow-btn px-7 py-4 bg-accent text-white rounded-2xl font-semibold hover:bg-accent-hover disabled:opacity-30 flex items-center gap-2 transition-all group relative z-10">
-                  요약하기<ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                <button type="submit" disabled={loading || !url.trim()} className="w-full md:w-auto bg-accent text-white px-8 py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:scale-105 transition-transform disabled:opacity-30">
+                  Summarize <Sparkles className="w-4 h-4" />
                 </button>
               </div>
             </form>
 
             <div className="space-y-6">
               <div>
-                <h2 className="text-2xl font-bold text-foreground tracking-tight">{summary.title}</h2>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <span className="px-2.5 py-1 bg-accent/10 text-accent text-xs rounded-lg font-mono">{summary.engine_used}</span>
-                  {summary.video_duration && <span className="px-2.5 py-1 bg-card border border-border text-muted text-xs rounded-lg font-mono">{formatTime(summary.video_duration)}</span>}
-                  {summary.keyframe_count > 0 && <span className="px-2.5 py-1 bg-card border border-border text-muted text-xs rounded-lg font-mono">키프레임 {summary.keyframe_count}장</span>}
-                  <span className="px-2.5 py-1 bg-card border border-border text-muted text-xs rounded-lg font-mono">자막: {summary.transcript_language}</span>
+                <h2 className="text-3xl font-headline font-bold text-white tracking-tight">{summary.title}</h2>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <span className="px-2.5 py-1 bg-accent/10 text-accent text-[0.6875rem] rounded-lg font-bold uppercase tracking-wider">{summary.engine_used}</span>
+                  {summary.video_duration && <span className="px-2.5 py-1 bg-card border border-border text-muted text-[0.6875rem] rounded-lg font-mono">{formatTime(summary.video_duration)}</span>}
+                  {summary.keyframe_count > 0 && <span className="px-2.5 py-1 bg-card border border-border text-muted text-[0.6875rem] rounded-lg font-mono">키프레임 {summary.keyframe_count}장</span>}
+                  <span className="px-2.5 py-1 bg-card border border-border text-muted text-[0.6875rem] rounded-lg font-mono">{summary.transcript_language}</span>
                 </div>
                 {summary.id && (
                   <div className="mt-4 flex gap-2">
@@ -499,24 +435,35 @@ export default function Home() {
       </main>
 
       {/* ===== 푸터 ===== */}
-      <footer className="border-t border-border bg-[#05080f]">
-        <div className="max-w-6xl mx-auto px-6 py-8">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2.5">
-              <div className="w-6 h-6 bg-accent/20 rounded-md flex items-center justify-center">
-                <Play className="w-3 h-3 text-accent fill-accent" />
-              </div>
-              <span className="text-sm font-medium text-muted-light">YTSummarizer</span>
-            </div>
-            <div className="flex items-center gap-6 text-xs text-muted">
-              <Link href="/batch" className="hover:text-muted-light transition-colors">배치 처리</Link>
-              <Link href="/knowledge" className="hover:text-muted-light transition-colors">지식 종합본</Link>
-              <Link href="/history" className="hover:text-muted-light transition-colors">저장된 요약</Link>
-            </div>
-            <div className="flex items-center gap-2 text-xs text-muted">
-              <span className="w-1.5 h-1.5 bg-green-500 rounded-full pulse-dot" />
-              Powered by Gemini & Claude
-            </div>
+      <footer className="w-full py-12 px-6 bg-[#050505] border-t border-border">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-7xl mx-auto">
+          <div className="col-span-2 md:col-span-1 space-y-4">
+            <div className="text-lg font-bold text-accent font-headline">YTSummarizer</div>
+            <p className="text-muted text-xs leading-relaxed max-w-[200px]">
+              AI로 영상을 분석하고 지식을 축적하는 가장 효율적인 방법을 제시합니다.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3">
+            <h5 className="text-[0.6875rem] uppercase tracking-[0.05em] text-accent font-bold">Platform</h5>
+            <Link href="/history" className="text-[0.6875rem] text-muted hover:text-white transition-opacity uppercase tracking-[0.05em]">History</Link>
+            <Link href="/batch" className="text-[0.6875rem] text-muted hover:text-white transition-opacity uppercase tracking-[0.05em]">Batch</Link>
+          </div>
+          <div className="flex flex-col gap-3">
+            <h5 className="text-[0.6875rem] uppercase tracking-[0.05em] text-accent font-bold">Features</h5>
+            <Link href="/knowledge" className="text-[0.6875rem] text-muted hover:text-white transition-opacity uppercase tracking-[0.05em]">Knowledge Base</Link>
+            <Link href="/login" className="text-[0.6875rem] text-muted hover:text-white transition-opacity uppercase tracking-[0.05em]">Account</Link>
+          </div>
+          <div className="flex flex-col gap-3">
+            <h5 className="text-[0.6875rem] uppercase tracking-[0.05em] text-accent font-bold">Support</h5>
+            <span className="text-[0.6875rem] text-muted uppercase tracking-[0.05em]">Gemini & Claude</span>
+            <span className="text-[0.6875rem] text-muted uppercase tracking-[0.05em]">Powered by AI</span>
+          </div>
+        </div>
+        <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="text-[0.6875rem] uppercase tracking-[0.05em] text-muted">© 2024 YTSummarizer. Editorial Futurism.</div>
+          <div className="flex items-center gap-2 text-xs text-muted">
+            <span className="w-1.5 h-1.5 bg-green-500 rounded-full pulse-dot" />
+            System Operational
           </div>
         </div>
       </footer>

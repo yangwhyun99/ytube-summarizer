@@ -164,14 +164,13 @@ export default function KnowledgeDetailPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="glass-header border-b border-border sticky top-0 z-50">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center gap-3">
-          <Youtube className="w-7 h-7 text-accent" />
-          <h1 className="text-lg font-bold text-foreground tracking-tight">YTSummarizer</h1>
+      <header className="glass-nav fixed top-4 left-1/2 -translate-x-1/2 w-[92%] max-w-5xl rounded-2xl flex items-center gap-3 px-8 py-4 z-50">
+        <div className="flex items-center gap-3 w-full">
+          <Link href="/" className="text-xl font-black tracking-tighter text-accent font-headline">YTSummarizer</Link>
         </div>
       </header>
 
-      <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-8">
+      <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-8 pt-24">
         <div className="flex items-center justify-between mb-6">
           <Link
             href="/knowledge"
@@ -394,7 +393,7 @@ export default function KnowledgeDetailPage() {
         )}
       </main>
 
-      <footer className="border-t border-border bg-[#05080f]">
+      <footer className="border-t border-border bg-[#050505]">
         <div className="max-w-5xl mx-auto px-6 py-6 flex items-center justify-between">
           <span className="text-sm text-muted">YTSummarizer</span>
           <div className="flex items-center gap-2 text-xs text-muted">
