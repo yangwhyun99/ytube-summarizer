@@ -18,6 +18,7 @@ class SectionResponse(BaseModel):
 
 
 class SummarizeResponse(BaseModel):
+    id: str = ""
     title: str
     sections: list[SectionResponse]
     full_text: str

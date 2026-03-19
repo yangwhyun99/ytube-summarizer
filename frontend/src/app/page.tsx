@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Youtube, Loader2, Settings2, ChevronDown } from "lucide-react";
+import { Youtube, Loader2, Settings2, ChevronDown, FileDown, FileText, History } from "lucide-react";
+import Link from "next/link";
 
 interface Section {
   title: string;
@@ -11,6 +12,7 @@ interface Section {
 }
 
 interface SummaryData {
+  id: string;
   title: string;
   sections: Section[];
   full_text: string;
@@ -89,6 +91,15 @@ export default function Home() {
           <span className="text-sm text-gray-500 hidden sm:inline">
             YouTube 영상 AI 요약
           </span>
+          <div className="ml-auto">
+            <Link
+              href="/history"
+              className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              <History className="w-4 h-4" />
+              <span className="hidden sm:inline">저장된 요약</span>
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -216,6 +227,34 @@ export default function Home() {
                 )}
                 <span>자막: {summary.transcript_language}</span>
               </div>
+              {summary.id && (
+                <div className="mt-3 flex gap-2">
+                  <button
+                    onClick={() =>
+                      window.open(
+                        `${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"}/api/export/${summary.id}/pdf`,
+                        "_blank"
+                      )
+                    }
+                    className="flex items-center gap-1 px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-50 text-gray-700 transition-colors"
+                  >
+                    <FileDown className="w-4 h-4" />
+                    PDF
+                  </button>
+                  <button
+                    onClick={() =>
+                      window.open(
+                        `${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"}/api/export/${summary.id}/docx`,
+                        "_blank"
+                      )
+                    }
+                    className="flex items-center gap-1 px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-50 text-gray-700 transition-colors"
+                  >
+                    <FileText className="w-4 h-4" />
+                    DOCX
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="space-y-4">
