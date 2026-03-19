@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Youtube, Loader2, Settings2, ChevronDown, FileDown, FileText, History } from "lucide-react";
+import { Youtube, Loader2, Settings2, ChevronDown, FileDown, FileText, History, BookOpen, ListVideo } from "lucide-react";
 import Link from "next/link";
 
 interface Section {
@@ -91,7 +91,21 @@ export default function Home() {
           <span className="text-sm text-gray-500 hidden sm:inline">
             YouTube 영상 AI 요약
           </span>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-4">
+            <Link
+              href="/batch"
+              className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              <ListVideo className="w-4 h-4" />
+              <span className="hidden sm:inline">배치</span>
+            </Link>
+            <Link
+              href="/knowledge"
+              className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              <BookOpen className="w-4 h-4" />
+              <span className="hidden sm:inline">종합본</span>
+            </Link>
             <Link
               href="/history"
               className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors"

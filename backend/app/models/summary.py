@@ -26,6 +26,8 @@ class Summary(Base):
     video_duration: Mapped[float | None] = mapped_column(Float, nullable=True)
     keyframe_count: Mapped[int] = mapped_column(Integer, default=0)
     transcript_language: Mapped[str] = mapped_column(String(10), default="")
+    tags: Mapped[list] = mapped_column(JSON, default=list)
+    share_id: Mapped[str | None] = mapped_column(String(12), unique=True, nullable=True, default=None)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),

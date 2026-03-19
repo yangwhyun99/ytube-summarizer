@@ -5,7 +5,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
 from app.database import init_db
-from app.routers import summarize, summaries, export
+import app.models.knowledge  # noqa: F401 — 테이블 생성을 위해 import
+from app.routers import summarize, summaries, export, knowledge
 
 load_dotenv()
 
@@ -29,6 +30,7 @@ app.add_middleware(
 app.include_router(summarize.router)
 app.include_router(summaries.router)
 app.include_router(export.router)
+app.include_router(knowledge.router)
 
 
 @app.get("/health")

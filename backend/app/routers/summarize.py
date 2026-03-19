@@ -3,6 +3,7 @@
 import shutil
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -15,6 +16,7 @@ from app.services.ai_engine import (
 )
 from app.services.keyframe import extract_keyframes
 from app.services.transcript import get_transcript, extract_video_id
+from app.services.playlist import get_playlist_videos
 
 router = APIRouter(prefix="/api", tags=["summarize"])
 
@@ -119,3 +121,63 @@ async def summarize(
     finally:
         if temp_dir:
             shutil.rmtree(temp_dir, ignore_errors=True)
+
+
+class PlaylistRequest(BaseModel):
+    url: str = Field(..., description="YouTube 재생목록 URL")
+
+
+@router.post("/playlist/videos")
+async def list_playlist_videos(request: PlaylistRequest):
+    """재생목록의 영상 목록을 조회"""
+    try:
+        videos = await get_playlist_videos(request.url)
+    except (ValueError, RuntimeError) as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return {"videos": videos, "count": len(videos)}
+
+
+class BatchSummarizeRequest(BaseModel):
+    urls: list[str] = Field(..., description="요약할 YouTube URL 목록")
+    engine: str = Field(default="gemini")
+    detail_level: str = Field(default="detailed")
+    language: str = Field(default="ko")
+
+
+@router.post("/batch-summarize")
+async def batch_summarize(
+    request: BatchSummarizeRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """여러 영상을 순차적으로 요약 (배치 처리)"""
+    results: list[dict] = []
+
+    for url in request.urls:
+        try:
+            single_req = SummarizeRequest(
+                url=url,
+                engine=request.engine,
+                detail_level=request.detail_level,
+                language=request.language,
+            )
+            response = await summarize(single_req, db)
+            results.append({
+                "url": url,
+                "status": "success",
+                "id": response.id,
+                "title": response.title,
+            })
+        except Exception as e:
+            results.append({
+                "url": url,
+                "status": "error",
+                "error": str(e),
+            })
+
+    success_count = sum(1 for r in results if r["status"] == "success")
+    return {
+        "results": results,
+        "total": len(results),
+        "success": success_count,
+        "failed": len(results) - success_count,
+    }
