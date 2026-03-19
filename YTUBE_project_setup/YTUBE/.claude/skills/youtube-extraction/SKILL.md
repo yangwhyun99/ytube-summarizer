@@ -7,24 +7,35 @@ description: YouTube 영상에서 트랜스크립트와 키프레임을 추출�
 
 ## 트랜스크립트 추출
 
-### 방법 1: youtube-transcript-api (자막 있는 영상)
+### 방법 1: youtube-transcript-api v1.2+ (자막 있는 영상)
 ```python
 from youtube_transcript_api import YouTubeTranscriptApi
 
-# 자동/수동 자막 추출 (타임스탬프 포함)
-transcript = YouTubeTranscriptApi.get_transcript("VIDEO_ID", languages=['ko', 'en'])
-# 결과: [{'text': '...', 'start': 0.0, 'duration': 3.5}, ...]
+# v1.2+ API: 인스턴스를 생성하여 사용
+ytt_api = YouTubeTranscriptApi()
+
+# 사용 가능한 자막 목록 조회
+transcript_list = ytt_api.list("VIDEO_ID")
+
+# 특정 언어 자막 가져오기
+transcript = transcript_list.find_transcript(["ko", "en"])
+fetched = transcript.fetch()
+# 결과: FetchedTranscript (iterable, 각 entry에 .text, .start, .duration)
+
+# 간단 사용: 바로 fetch
+fetched = ytt_api.fetch("VIDEO_ID", languages=["ko", "en"])
 ```
 
 ### 방법 2: yt-dlp + Whisper (자막 없는 영상)
 ```bash
-# 음성만 추출
-yt-dlp -x --audio-format mp3 -o "audio.mp3" "VIDEO_URL"
+# 음성만 추출 (Windows PATH 문제 시 python -m yt_dlp 사용)
+python -m yt_dlp -x --audio-format mp3 -o "audio.mp3" "VIDEO_URL"
 ```
 ```python
-import whisper
-model = whisper.load_model("base")
-result = model.transcribe("audio.mp3", language="ko")
+from faster_whisper import WhisperModel
+
+model = WhisperModel("small", device="cpu", compute_type="int8")
+segments, info = model.transcribe("audio.mp3", beam_size=5)
 ```
 
 ## 키프레임 추출 (Scene Detection)

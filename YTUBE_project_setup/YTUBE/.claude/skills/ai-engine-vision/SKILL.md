@@ -43,7 +43,7 @@ class GeminiEngine(SummaryEngine):
 
     def __init__(self):
         genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-        self.model = genai.GenerativeModel("gemini-2.5-flash-preview-05-20")
+        self.model = genai.GenerativeModel("gemini-2.5-flash")
 
     async def summarize(self, transcript, keyframe_paths, detail_level="detailed", output_language="ko"):
         images = [Image.open(path) for path in keyframe_paths]
