@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Youtube, Loader2, Settings2, ChevronDown, FileDown, FileText, History, BookOpen, ListVideo } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Youtube, Loader2, Settings2, ChevronDown, FileDown, FileText, History, BookOpen, ListVideo, User, LogOut } from "lucide-react";
 import Link from "next/link";
 
 interface Section {
@@ -31,6 +31,16 @@ function formatTime(seconds: number | null): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
+function extractVideoId(videoUrl: string): string {
+  const match = videoUrl.match(/(?:v=|\/v\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  return match ? match[1] : "";
+}
+
+function getYoutubeTimestampUrl(videoUrl: string, seconds: number): string {
+  const videoId = extractVideoId(videoUrl);
+  return `https://www.youtube.com/watch?v=${videoId}&t=${Math.floor(seconds)}s`;
+}
+
 export default function Home() {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
@@ -42,6 +52,29 @@ export default function Home() {
   const [detailLevel, setDetailLevel] = useState("detailed");
   const [language, setLanguage] = useState("ko");
 
+  // 인증 상태
+  const [currentUser, setCurrentUser] = useState<{
+    username: string;
+    plan: string;
+  } | null>(null);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("user");
+    if (stored) {
+      try {
+        setCurrentUser(JSON.parse(stored));
+      } catch {
+        // ignore
+      }
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setCurrentUser(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!url.trim()) return;
@@ -51,11 +84,17 @@ export default function Home() {
     setSummary(null);
 
     try {
+      const token = localStorage.getItem("token");
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"}/api/summarize`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers,
           body: JSON.stringify({
             url: url.trim(),
             engine,
@@ -113,6 +152,31 @@ export default function Home() {
               <History className="w-4 h-4" />
               <span className="hidden sm:inline">저장된 요약</span>
             </Link>
+            {currentUser ? (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600 hidden sm:inline">
+                  {currentUser.username}
+                  {currentUser.plan === "premium" && (
+                    <span className="ml-1 px-1.5 py-0.5 bg-yellow-100 text-yellow-800 text-xs rounded">PRO</span>
+                  )}
+                </span>
+                <button
+                  onClick={handleLogout}
+                  className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                  title="로그아웃"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                <User className="w-4 h-4" />
+                <span className="hidden sm:inline">로그인</span>
+              </Link>
+            )}
           </div>
         </div>
       </header>
@@ -282,12 +346,18 @@ export default function Home() {
                       {section.title}
                     </h3>
                     {section.timestamp_start !== null && (
-                      <span className="text-sm text-red-600 font-mono whitespace-nowrap">
+                      <a
+                        href={getYoutubeTimestampUrl(url, section.timestamp_start)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-red-600 font-mono whitespace-nowrap hover:text-red-800 hover:underline cursor-pointer"
+                        title="YouTube에서 해당 시점 재생"
+                      >
                         [{formatTime(section.timestamp_start)}
                         {section.timestamp_end !== null &&
                           ` - ${formatTime(section.timestamp_end)}`}
                         ]
-                      </span>
+                      </a>
                     )}
                   </div>
                   <p className="mt-2 text-gray-700 leading-relaxed whitespace-pre-wrap">

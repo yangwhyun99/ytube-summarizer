@@ -15,6 +15,17 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "YTSummarizer - YouTube 영상 요약",
   description: "YouTube 영상을 AI로 요약하고 지식 베이스를 구축하세요",
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    viewportFit: "cover",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "YTSummarizer",
+  },
 };
 
 export default function RootLayout({

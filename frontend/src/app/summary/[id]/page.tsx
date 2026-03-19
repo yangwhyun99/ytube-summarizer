@@ -44,6 +44,10 @@ function formatTime(seconds: number | null): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
+function getYoutubeTimestampUrl(videoId: string, seconds: number): string {
+  return `https://www.youtube.com/watch?v=${videoId}&t=${Math.floor(seconds)}s`;
+}
+
 export default function SummaryDetailPage() {
   const params = useParams();
   const id = params.id as string;
@@ -157,13 +161,19 @@ export default function SummaryDetailPage() {
                     <h3 className="text-lg font-semibold text-gray-900">
                       {section.title}
                     </h3>
-                    {section.timestamp_start !== null && (
-                      <span className="text-sm text-red-600 font-mono whitespace-nowrap">
+                    {section.timestamp_start !== null && summary && (
+                      <a
+                        href={getYoutubeTimestampUrl(summary.video_id, section.timestamp_start)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-red-600 font-mono whitespace-nowrap hover:text-red-800 hover:underline cursor-pointer"
+                        title="YouTube에서 해당 시점 재생"
+                      >
                         [{formatTime(section.timestamp_start)}
                         {section.timestamp_end !== null &&
                           ` - ${formatTime(section.timestamp_end)}`}
                         ]
-                      </span>
+                      </a>
                     )}
                   </div>
                   <p className="mt-2 text-gray-700 leading-relaxed whitespace-pre-wrap">

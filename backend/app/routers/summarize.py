@@ -1,6 +1,7 @@
 """요약 API 라우터"""
 
 import shutil
+from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
@@ -9,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.models.schemas import SummarizeRequest, SummarizeResponse, SectionResponse
 from app.models.summary import Summary
+from app.models.user import User
 from app.services.ai_engine import (
     DetailLevel,
     SummaryLanguage,
@@ -17,16 +19,45 @@ from app.services.ai_engine import (
 from app.services.keyframe import extract_keyframes
 from app.services.transcript import get_transcript, extract_video_id
 from app.services.playlist import get_playlist_videos
+from app.services.auth import get_current_user
 
 router = APIRouter(prefix="/api", tags=["summarize"])
+
+FREE_DAILY_LIMIT = 5
+
+
+async def _check_usage(user: User | None, db: AsyncSession) -> None:
+    """무료 사용자 일일 사용량 확인 및 증가"""
+    if user is None:
+        return  # 비로그인 사용자는 제한 없음 (로그인 강제 전까지)
+    if user.plan == "premium":
+        return  # 프리미엄은 무제한
+
+    today = date.today().isoformat()
+    if user.last_usage_date != today:
+        user.daily_usage = 0
+        user.last_usage_date = today
+
+    if user.daily_usage >= FREE_DAILY_LIMIT:
+        raise HTTPException(
+            status_code=429,
+            detail=f"무료 플랜 일일 한도({FREE_DAILY_LIMIT}건)를 초과했습니다. 프리미엄으로 업그레이드하세요.",
+        )
+
+    user.daily_usage += 1
+    await db.commit()
 
 
 @router.post("/summarize", response_model=SummarizeResponse)
 async def summarize(
     request: SummarizeRequest,
     db: AsyncSession = Depends(get_db),
+    current_user: User | None = Depends(get_current_user),
 ) -> SummarizeResponse:
     """YouTube 영상을 요약하고 DB에 저장한다."""
+    # 사용량 확인
+    await _check_usage(current_user, db)
+
     temp_dir = None
 
     try:

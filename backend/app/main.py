@@ -6,7 +6,8 @@ from dotenv import load_dotenv
 
 from app.database import init_db
 import app.models.knowledge  # noqa: F401 — 테이블 생성을 위해 import
-from app.routers import summarize, summaries, export, knowledge
+import app.models.user  # noqa: F401
+from app.routers import summarize, summaries, export, knowledge, auth
 
 load_dotenv()
 
@@ -31,6 +32,7 @@ app.include_router(summarize.router)
 app.include_router(summaries.router)
 app.include_router(export.router)
 app.include_router(knowledge.router)
+app.include_router(auth.router)
 
 
 @app.get("/health")
