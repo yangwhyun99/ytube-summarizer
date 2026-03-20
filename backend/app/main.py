@@ -22,10 +22,19 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="YTSummarizer API", lifespan=lifespan)
 
 # CORS: 로컬 + 프로덕션 도메인 허용
-allowed_origins = ["http://localhost:3000"]
+allowed_origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3001",
+]
 frontend_url = os.getenv("FRONTEND_URL")
 if frontend_url:
     allowed_origins.append(frontend_url)
+    # www 서브도메인 및 trailing slash 변형도 허용
+    if frontend_url.startswith("https://") and not frontend_url.startswith("https://www."):
+        allowed_origins.append(frontend_url.replace("https://", "https://www."))
+    allowed_origins.append(frontend_url.rstrip("/"))
 
 app.add_middleware(
     CORSMiddleware,
